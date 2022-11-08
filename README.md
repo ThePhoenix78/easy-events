@@ -9,14 +9,14 @@
 ### Code example
 
 ```py
-from commands import Commands
+from easy_events import Commands
 
 # create an event or use it in a class
 client = Commands()
 
 # create an event
 @client.event("event_name")
-def test1():
+def test1(data):
 	do_action_here
 
 
