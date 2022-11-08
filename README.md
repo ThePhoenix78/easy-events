@@ -1,12 +1,26 @@
 # easy-events
 
-## 
+**A library that help you to manage events**
 
-### Installation
+## Getting started
+
+1. [**Installation**](#installation)
+2. [**Usages**](#usages)
+3. [**Code example**](#code-example)
+4. [**Documentation**](#documentation)
+
+## Installation
 
 `pip install easy-events`
 
-### Code example
+GitHub : [Github](https://github.com/ThePhoenix78/Commands)
+
+
+## Usages
+
+text
+
+## Code example
 
 ```py
 from easy_events import Commands
@@ -33,7 +47,7 @@ def test1(data, arg1, arg2, *, arg3):
 
 # trigger the event
 client.process_data({"command": "second_event", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
-# here the parameters will be : 
+# here the parameters will be :
 # arg1 = arg1
 # arg2 = arg2
 # arg3 = [arg3, arg4]
