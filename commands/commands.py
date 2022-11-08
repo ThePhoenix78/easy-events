@@ -238,7 +238,8 @@ class Commands(Parameters, Decorator):
 
         args = data
 
-        if not isinstance(data, Parameters):
+        # if not isinstance(data, Parameters):
+        if not str(type(data)).endswith("<class 'easy_events.async_commands.Parameters'>"):
             args = Parameters(data, self.prefix, lock)
 
         # print("-"*15 + f"\n{args}\n" + "-"*15 + "\n")
