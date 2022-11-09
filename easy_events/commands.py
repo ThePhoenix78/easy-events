@@ -105,18 +105,52 @@ class Parameters:
         delattr(self, key)
 
 
+class Event:
+    def __init__(self, names: list, event: str, condition: callable = None, event_type: str = None):
+        self.names = names
+        self.event = event
+        self.condition = condition
+        self.type = event_type
+
+
 class Decorator:
     def __init__(self):
-        self.events = {}
+        self.events = []
         self.command = self.event
 
     def command_exist(self, name: str):
-        return self.events.get(name)
+        return name in self.get_events_names()
 
-    def get_commands(self):
-        return self.events.keys()
+    def get_events_names(self):
+        liste = []
+        for ev in self.events:
+            for name in ev.names:
+                liste.append(name)
 
-    def event(self, aliases=None, condition=None):
+        return liste
+
+    def get_types_names(self):
+        liste = []
+        for ev in self.events:
+            if ev.type not in liste:
+                liste.append(ev.type)
+
+        return liste
+
+    def get_type(self, event_type: str):
+        liste = []
+        for event in self.events:
+            if event_type == event.type:
+                liste.append(event)
+
+        return liste
+
+    def get_event(self, name: str):
+        for event in self.events:
+            if name in event.names:
+                return event
+
+    def event(self, aliases: list = None, condition: callable = None, type: str = None):
         if isinstance(aliases, str):
             aliases = [aliases]
         elif not aliases:
@@ -127,8 +161,7 @@ class Decorator:
 
         def add_command(command_funct):
             aliases.append(command_funct.__name__)
-            for command in aliases:
-                self.events[command.lower()] = {"command": command_funct, "condition": condition}
+            self.events.append(Event(aliases, command_funct, condition, type))
             return command_funct
 
         return add_command
@@ -229,8 +262,9 @@ class Commands(Parameters, Decorator):
         return dico
 
     def execute(self, data: Parameters):
-        com = self.events[data.command].get("command")
-        con = self.events[data.command].get("condition")
+        event = self.get_event(data.command)
+        com = event.event
+        con = event.condition
 
         dico = self.build_arguments(com, data.parameters)
 
@@ -249,11 +283,10 @@ class Commands(Parameters, Decorator):
 
         args = data
 
-        # if not isinstance(data, Parameters):
-        if not str(type(data)) == "<class 'easy_events.async_commands.Parameters'>":
+        if isinstance(data, Parameters):
+            pass
+        elif not str(type(data)) == "<class 'easy_events.async_commands.Parameters'>":
             args = Parameters(data, self.prefix, lock)
-
-        # print("-"*15 + f"\n{args}\n" + "-"*15 + "\n")
 
         if isinstance(args.command, str) and self.command_exist(args.command) and args._called:
             try:
@@ -271,3 +304,20 @@ class Commands(Parameters, Decorator):
             return data.decode()
 
         return data
+
+
+if __name__ == "__main__":
+    client = Commands()
+
+    @client.event("event_name")
+    def test1(data):
+        print("test1")
+
+    @client.event("second_event")
+    def test2(data, arg1, arg2, *, arg3):
+        print("test2", arg1, arg2, arg3)
+
+    client.process_data("event_name")
+    client.process_data({"command": "second_event", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
+    client.process_data(Parameters("test1"))
+    print(client.get_events_names())
