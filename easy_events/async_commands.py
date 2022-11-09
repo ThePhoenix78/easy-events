@@ -93,6 +93,12 @@ class Parameters:
     def transform(self):
         return self.__dict__
 
+    def clear(self):
+        delattr(self, "command")
+        delattr(self, "parameters")
+        delattr(self, "_prefix")
+        delattr(self, "_called")
+
     def build_str(self):
         res = ""
         for key, value in self.__dict__.items():
@@ -106,18 +112,56 @@ class Parameters:
     def setattr(self, key, value):
         setattr(self, key, value)
 
+    def delattr(self, key):
+        delattr(self, key)
+
+
+class Event:
+    def __init__(self, names: list, event: str, condition: callable = None, event_type: str = None):
+        self.names = names
+        self.event = event
+        self.condition = condition
+        self.type = event_type
+
 
 class Decorator:
     def __init__(self):
-        self.commands = {}
+        self.events = []
+        self.command = self.event
 
     def command_exist(self, name: str):
-        return self.commands.get(name)
+        return name in self.get_events_names()
 
-    def get_commands(self):
-        return self.commands.keys()
+    def get_events_names(self):
+        liste = []
+        for ev in self.events:
+            for name in ev.names:
+                liste.append(name)
 
-    def command(self, condition=None, aliases=None):
+        return liste
+
+    def get_types_names(self):
+        liste = []
+        for ev in self.events:
+            if ev.type not in liste:
+                liste.append(ev.type)
+
+        return liste
+
+    def get_type(self, event_type: str):
+        liste = []
+        for event in self.events:
+            if event_type == event.type:
+                liste.append(event)
+
+        return liste
+
+    def get_event(self, name: str):
+        for event in self.events:
+            if name in event.names:
+                return event
+
+    def event(self, aliases: list = None, condition: callable = None, type: str = None):
         if isinstance(aliases, str):
             aliases = [aliases]
         elif not aliases:
@@ -131,12 +175,10 @@ class Decorator:
                 raise 'Command must be async: "async def ..."'
 
             aliases.append(command_funct.__name__)
-            for command in aliases:
-                self.commands[command.lower()] = {"command": command_funct, "condition": condition}
+            self.events.append(Event(aliases, command_funct, condition, type))
             return command_funct
 
         return add_command
-
 
 class AsyncCommands(Parameters, Decorator):
     def __init__(self, prefix: str = "", lock: bool = False):
@@ -236,8 +278,9 @@ class AsyncCommands(Parameters, Decorator):
         return dico
 
     async def execute(self, data: Parameters):
-        com = self.commands[data.command].get("command")
-        con = self.commands[data.command].get("condition")
+        event = self.get_event(data.command)
+        com = event.event
+        con = event.condition
 
         dico = await self.build_arguments(com, data.parameters)
 
