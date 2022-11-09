@@ -82,6 +82,12 @@ class Parameters:
     def transform(self):
         return self.__dict__
 
+    def clear(self):
+        delattr(self, "command")
+        delattr(self, "parameters")
+        delattr(self, "_prefix")
+        delattr(self, "_called")
+
     def build_str(self):
         res = ""
         for key, value in self.__dict__.items():
@@ -94,6 +100,9 @@ class Parameters:
 
     def setattr(self, key, value):
         setattr(self, key, value)
+
+    def delattr(self, key):
+        delattr(self, key)
 
 
 class Decorator:
@@ -225,7 +234,9 @@ class Commands(Parameters, Decorator):
 
         dico = self.build_arguments(com, data.parameters)
 
-        data.parameters = dico
+        # data.parameters = dico
+        for name in ["command", "parameters", "_called", "_prefix"]:
+            delattr(data, name)
 
         if (con and con(data)) or not con:
             return com(data, **dico)
