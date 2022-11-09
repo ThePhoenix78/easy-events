@@ -107,16 +107,16 @@ class Parameters:
 
 class Decorator:
     def __init__(self):
-        self.commands = {}
-        self.event = self.trigger = self.command
+        self.events = {}
+        self.command = self.event
 
     def command_exist(self, name: str):
-        return self.commands.get(name)
+        return self.events.get(name)
 
     def get_commands(self):
-        return self.commands.keys()
+        return self.events.keys()
 
-    def command(self, aliases=None, condition=None):
+    def event(self, aliases=None, condition=None):
         if isinstance(aliases, str):
             aliases = [aliases]
         elif not aliases:
@@ -128,7 +128,7 @@ class Decorator:
         def add_command(command_funct):
             aliases.append(command_funct.__name__)
             for command in aliases:
-                self.commands[command.lower()] = {"command": command_funct, "condition": condition}
+                self.events[command.lower()] = {"command": command_funct, "condition": condition}
             return command_funct
 
         return add_command
@@ -229,8 +229,8 @@ class Commands(Parameters, Decorator):
         return dico
 
     def execute(self, data: Parameters):
-        com = self.commands[data.command].get("command")
-        con = self.commands[data.command].get("condition")
+        com = self.events[data.command].get("command")
+        con = self.events[data.command].get("condition")
 
         dico = self.build_arguments(com, data.parameters)
 
