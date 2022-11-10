@@ -1,9 +1,9 @@
 # coding: utf-8
 from inspect import getfullargspec
 try:
-    from .objects import *
+    from .objects import Decorator, Parameters
 except ImportError:
-    from objects import *
+    from objects import Decorator, Parameters
 
 # import json
 # from types import SimpleNamespace
@@ -15,7 +15,6 @@ class Commands(Decorator):
                  prefix: str = "",
                  lock: bool = False
                  ):
-
         Decorator.__init__(self, is_async=False)
         self.prefix = prefix
         self._lock = lock
@@ -114,7 +113,7 @@ class Commands(Decorator):
         con = event.condition
 
         dico = self.build_arguments(com, data.parameters)
-        
+
         for elem in ["command", "parameters", "_prefix", "_called"]:
             delattr(data, elem)
 
@@ -131,7 +130,7 @@ class Commands(Decorator):
 
         if isinstance(data, Parameters):
             pass
-        elif not str(type(data)) == "<class 'easy_events.async_commands.Parameters'>":
+        elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
             args = Parameters(data, self.prefix, lock)
 
         if isinstance(args.command, str) and self.event_exist(args.command) and args._called:

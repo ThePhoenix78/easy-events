@@ -109,8 +109,8 @@ class Parameters:
 
 
 class Event:
-    def __init__(self, 
-                 names: list, 
+    def __init__(self,
+                 names: list,
                  event: str,
                  condition: callable = None,
                  event_type: str = None
@@ -149,11 +149,11 @@ class Decorator:
             liste.append(ev.type)
 
         liste = list(dict.fromkeys(liste))
-        
+
         if None in liste:
             liste.remove(None)
-        
-        return  liste
+
+        return liste
 
     def get_events(self, event_type: str):
         liste = []

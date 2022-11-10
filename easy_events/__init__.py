@@ -1,8 +1,8 @@
 try:
-    from .commands import *
-    from .async_commands import *
-    from .objects import *
+    from .commands import Commands
+    from .async_commands import AsyncCommands
+    from .objects import Parameters, Decorator, Event
 except ImportError:
-    from commands import *
-    from async_commands import *
-    from objects import *
+    from commands import Commands
+    from async_commands import AsyncCommands
+    from objects import Parameters, Decorator, Event
