@@ -1,9 +1,9 @@
 # coding: utf-8
 from inspect import getfullargspec
 try:
-    from .objects import Decorator, Parameters
+    from .objects import Decorator, Parameters, Event
 except ImportError:
-    from objects import Decorator, Parameters
+    from objects import Decorator, Parameters, Event
 
 # import json
 # from types import SimpleNamespace
@@ -107,8 +107,7 @@ class Commands(Decorator):
 
         return dico
 
-    def execute(self, data: Parameters):
-        event = self.get_event(data.command)
+    def execute(self, event: Event, data: Parameters):
         com = event.event
         con = event.condition
 
@@ -133,9 +132,11 @@ class Commands(Decorator):
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
             args = Parameters(data, self.prefix, lock)
 
-        if isinstance(args.command, str) and self.event_exist(args.command) and args._called:
+        event = self.get_event(args.command)
+
+        if isinstance(args.command, str) and event and args._called:
             try:
-                val = self.execute(args)
+                val = self.execute(event, args)
             except Exception as e:
                 raise e
                 return f"{type(e)}: {e}"

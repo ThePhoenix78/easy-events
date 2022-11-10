@@ -1,5 +1,4 @@
 from inspect import getfullargspec
-from threading import Thread
 from asyncio import (
     gather,
     wait_for,
@@ -13,9 +12,9 @@ from asyncio import (
 import asyncio
 
 try:
-    from .objects import *
+    from .objects import Decorator, Parameters, Event
 except ImportError:
-    from objects import *
+    from objects import Decorator, Parameters, Event
 
 # import json
 # from types import SimpleNamespace
@@ -119,7 +118,7 @@ class AsyncCommands(Decorator):
 
         return dico
 
-    async def execute(self, data: Parameters):
+    async def execute(self, event: Event, data: Parameters):
         event = self.get_event(data.command)
         com = event.event
         con = event.condition
@@ -144,15 +143,17 @@ class AsyncCommands(Decorator):
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
             args = Parameters(data, self.prefix, lock)
 
-        if isinstance(args.command, str) and self.event_exist(args.command) and args._called:
-            self.waiting_list.append(args)
+        event = self.get_event(args.command)
+
+        if isinstance(args.command, str) and event and args._called:
+            self.waiting_list.append((event, args))
 
     async def _thread(self):
         while self._run:
             tasks = []
 
             for data in self.waiting_list:
-                tasks.append(asyncio.create_task(self.execute(data)))
+                tasks.append(asyncio.create_task(self.execute(*data)))
 
             """
             for task in tasks:
