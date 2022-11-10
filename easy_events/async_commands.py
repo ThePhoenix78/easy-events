@@ -141,7 +141,7 @@ class AsyncCommands(Decorator):
 
         if isinstance(data, Parameters):
             pass
-        elif not str(type(data)) == "<class 'easy_events.async_commands.Parameters'>":
+        elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
             args = Parameters(data, self.prefix, lock)
 
         if isinstance(args.command, str) and self.event_exist(args.command) and args._called:
