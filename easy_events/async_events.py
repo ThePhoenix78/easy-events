@@ -21,7 +21,7 @@ except ImportError:
 # x = json.loads(data, object_hook=lambda _d: SimpleNamespace(**_d))
 
 
-class AsyncCommands(Decorator):
+class AsyncEvents(Decorator):
     def __init__(self, prefix: str = "", lock: bool = False):
         Decorator.__init__(self, is_async=True)
         self.prefix = prefix
@@ -119,13 +119,13 @@ class AsyncCommands(Decorator):
         return dico
 
     async def execute(self, event: Event, data: Parameters):
-        event = self.get_event(data.command)
+        event = self.get_event(data._command)
         com = event.event
         con = event.condition
 
-        dico = await self.build_arguments(com, data.parameters)
+        dico = await self.build_arguments(com, data._parameters)
 
-        data.parameters = dico
+        data._parameters = dico
 
         if (con and con(data)) or not con:
             return await com(data, **dico)
@@ -143,9 +143,9 @@ class AsyncCommands(Decorator):
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
             args = Parameters(data, self.prefix, lock)
 
-        event = self.get_event(args.command)
+        event = self.get_event(args._command)
 
-        if isinstance(args.command, str) and event and args._called:
+        if isinstance(args._command, str) and event and args._called:
             self.waiting_list.append((event, args))
 
     async def _thread(self):
@@ -155,10 +155,8 @@ class AsyncCommands(Decorator):
             for data in self.waiting_list:
                 tasks.append(asyncio.create_task(self.execute(*data)))
 
-            """
             for task in tasks:
                 print(await task)
-            """
 
             self.waiting_list.clear()
             await asyncio.sleep(.1)
@@ -168,8 +166,7 @@ class AsyncCommands(Decorator):
 
 
 if __name__ == "__main__":
-    import asyncio
-    client = AsyncCommands(prefix="!")
+    client = AsyncEvents(prefix="!")
 
     @client.command()
     async def hello(data, *, world, lol="lol"):
@@ -183,21 +180,20 @@ if __name__ == "__main__":
     data = Parameters("!hello", client.prefix)
     build_data(data)
     data = client.process_data(data)
-    print(0, data)
+    # print(0, data)
 
     data = client.process_data({"command": "hello", "parameters": {"world": "world", "lol": "data"}})
-    print(1, data)
+    # print(1, data)
 
     data = client.process_data({"command": "hello", "parameters": ["world", "data"]})
-    print(2, data)
+    # print(2, data)
 
     data = client.process_data(["hello", "world", "data"])
-    print(3, data)
+    # print(3, data)
 
     data = client.process_data("!hello world data")
-    print(4, data)
+    # print(4, data)
 
     data = client.process_data("!salut mdr 222")
-    print(data)
 
     client.run()

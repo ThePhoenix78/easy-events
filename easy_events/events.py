@@ -10,12 +10,13 @@ except ImportError:
 # x = json.loads(data, object_hook=lambda _d: SimpleNamespace(**_d))
 
 
-class Commands(Decorator):
+class Events(Decorator):
     def __init__(self,
                  prefix: str = "",
-                 lock: bool = False
+                 lock: bool = False,
+                 self_name: bool = True
                  ):
-        Decorator.__init__(self, is_async=False)
+        Decorator.__init__(self, is_async=False, self_name=self_name)
         self.prefix = prefix
         self._lock = lock
 
@@ -111,15 +112,15 @@ class Commands(Decorator):
         com = event.event
         con = event.condition
 
-        dico = self.build_arguments(com, data.parameters)
+        dico = self.build_arguments(com, data._parameters)
 
-        for elem in ["command", "parameters", "_prefix", "_called"]:
+        for elem in ["_command", "_parameters", "_prefix", "_called"]:
             delattr(data, elem)
 
         if (con and con(data)) or not con:
             return com(data, **dico)
 
-    def process_data(self, data, lock: bool = None):
+    def process_data(self, data, event_type: str = None, lock: bool = None):
         none = type(None)
 
         if isinstance(lock, none):
@@ -132,9 +133,9 @@ class Commands(Decorator):
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
             args = Parameters(data, self.prefix, lock)
 
-        event = self.get_event(args.command)
+        event = self.get_event(args._command)
 
-        if isinstance(args.command, str) and event and args._called:
+        if isinstance(args._command, str) and event and args._called and event.check_type(event_type):
             try:
                 val = self.execute(event, args)
             except Exception as e:
@@ -153,10 +154,10 @@ class Commands(Decorator):
 
 
 if __name__ == "__main__":
-    client = Commands()
+    client = Events()
 
     @client.event("event_name", type="event")
-    def event_name(data):
+    def test1(data):
         print("test1")
         print("data", data)
 
@@ -166,6 +167,7 @@ if __name__ == "__main__":
         print("data", data)
 
     client.process_data("event_name")
+    print("-"*50)
     client.process_data({"command": "second_event", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
     client.process_data(Parameters("test1"))
     print(client.get_events_names("event"))
