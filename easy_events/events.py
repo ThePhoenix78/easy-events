@@ -133,9 +133,9 @@ class Events(Decorator):
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
             args = Parameters(data, self.prefix, lock)
 
-        event = self.get_event(args._command)
+        event = self.grab_event(args._command, event_type)
 
-        if isinstance(args._command, str) and event and args._called and event.check_type(event_type):
+        if isinstance(args._command, str) and event and args._called:
             try:
                 val = self.execute(event, args)
             except Exception as e:

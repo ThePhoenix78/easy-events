@@ -98,6 +98,9 @@ class Parameters:
 
         return res
 
+    def get(self, key: str):
+        getattr(self, key, None)
+
     def __str__(self):
         return self.build_str()
 
@@ -179,6 +182,11 @@ class Decorator:
     def get_event(self, name: str):
         for event in self.events:
             if name in event.names:
+                return event
+
+    def grab_event(self, name: str, event_type: str):
+        for event in self.events:
+            if name in event.names and event_type == event.type:
                 return event
 
     def add_event(self, aliases: list = None, condition: callable = None, type: str = None):

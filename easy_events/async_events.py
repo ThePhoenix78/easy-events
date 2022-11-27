@@ -130,7 +130,7 @@ class AsyncEvents(Decorator):
         if (con and con(data)) or not con:
             return await com(data, **dico)
 
-    def process_data(self, data, lock: bool = None):
+    def process_data(self, data, event_type: str = None, lock: bool = None):
         none = type(None)
 
         if isinstance(lock, none):
@@ -143,7 +143,7 @@ class AsyncEvents(Decorator):
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
             args = Parameters(data, self.prefix, lock)
 
-        event = self.get_event(args._command)
+        event = self.grab_event(args._command, event_type)
 
         if isinstance(args._command, str) and event and args._called:
             self.waiting_list.append((event, args))
@@ -168,7 +168,7 @@ class AsyncEvents(Decorator):
 if __name__ == "__main__":
     client = AsyncEvents(prefix="!")
 
-    @client.command()
+    @client.event()
     async def hello(data, *, world, lol="lol"):
         await asyncio.sleep(1)
         return f"Hello {world} / {lol}"
@@ -176,6 +176,7 @@ if __name__ == "__main__":
     def build_data(data):
         data.image = "png"
         data.file = "txt"
+
 
     data = Parameters("!hello", client.prefix)
     build_data(data)
