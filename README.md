@@ -23,10 +23,10 @@ text
 ## Code example
 
 ```py
-from easy_events import Commands
+from easy_events import Events
 
 # create an event or use it in a class
-client = Commands()
+client = Events()
 
 # create an event
 @client.event("event_name")
