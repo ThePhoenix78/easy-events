@@ -7,7 +7,7 @@ class Parameters:
     def __init__(self, data, prefix: str = "", lock: bool = False):
         self._prefix = prefix
         self._called = True
-        self._command = data
+        self._event = data
         self._parameters = ""
 
         if not lock:
@@ -18,15 +18,15 @@ class Parameters:
     def convert(self):
         check = False
         blank_prefix = False
-        com = self._command
+        com = self._event
 
         if isinstance(self._prefix, str):
-            check = str(self._command).startswith(self._prefix)
+            check = str(self._event).startswith(self._prefix)
             blank_prefix = False if self._prefix else True
 
         elif isinstance(self._prefix, list):
             for pre in self._prefix:
-                if str(self._command).startswith(pre):
+                if str(self._event).startswith(pre):
                     check = True
 
                 if check and pre == "":
@@ -34,14 +34,14 @@ class Parameters:
 
         if check and not blank_prefix:
             try:
-                self._command = com.lower().split()[0][1:]
+                self._event = com.lower().split()[0][1:]
                 self._parameters = " ".join(com.split()[1:])
             except Exception:
-                self._command = com.lower()
+                self._event = com.lower()
                 self._parameters = ""
 
         elif check and blank_prefix:
-            self._command = com.lower().split()[0]
+            self._event = com.lower().split()[0]
             self._parameters = " ".join(com.split()[1:])
 
         self._called = check
@@ -49,28 +49,28 @@ class Parameters:
     def revert(self):
         done = False
         try:
-            data = {"command": "", "parameters": ""}
+            data = {"event": "", "parameters": ""}
 
-            if isinstance(self._command, str) or isinstance(self._command, bytes):
-                data = literal_eval(self._command)
+            if isinstance(self._event, str) or isinstance(self._event, bytes):
+                data = literal_eval(self._event)
 
-            elif isinstance(self._command, list):
-                if self._command:
-                    data["command"] = self._command[0]
+            elif isinstance(self._event, list):
+                if self._event:
+                    data["event"] = self._event[0]
 
-                if len(self._command) > 1:
-                    data["parameters"] = self._command[1:]
+                if len(self._event) > 1:
+                    data["parameters"] = self._event[1:]
 
             else:
-                data = self._command
+                data = self._event
 
-            self._command = data.get("command")
+            self._event = data.get("event")
             self._parameters = data.get("parameters")
 
             done = True
 
             for key, value in data.items():
-                if key not in ["command", "parameters"]:
+                if key not in ["event", "parameters"]:
                     setattr(self, key, value)
 
         except Exception:
@@ -86,7 +86,7 @@ class Parameters:
             delattr(self, key)
 
     def clean(self):
-        del(self._command)
+        del(self._event)
         del(self._parameters)
         del(self._prefix)
         del(self._called)

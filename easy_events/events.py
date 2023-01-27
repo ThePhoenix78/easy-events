@@ -114,13 +114,13 @@ class Events(Decorator):
 
         dico = self.build_arguments(com, data._parameters)
 
-        for elem in ["_command", "_parameters", "_prefix", "_called"]:
+        for elem in ["_event", "_parameters", "_prefix", "_called"]:
             delattr(data, elem)
 
         if (con and con(data)) or not con:
             return com(data, **dico)
 
-    def process_data(self, data, event_type: str = None, lock: bool = None):
+    def trigger(self, data, event_type: str = None, lock: bool = None):
         none = type(None)
 
         if isinstance(lock, none):
@@ -133,9 +133,9 @@ class Events(Decorator):
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
             args = Parameters(data, self.prefix, lock)
 
-        event = self.grab_event(args._command, event_type)
+        event = self.grab_event(args._event, event_type)
 
-        if isinstance(args._command, str) and event and args._called:
+        if isinstance(args._event, str) and event and args._called:
             try:
                 val = self.execute(event, args)
             except Exception as e:
@@ -166,13 +166,13 @@ if __name__ == "__main__":
         print("test2", arg1, arg2, arg3)
         print("data", data)
 
-    client.process_data("event_name")
+    client.trigger("event_name")
     print("-"*50)
-    client.process_data({"command": "second_event", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
-    client.process_data(Parameters("test1"))
-    print(client.get_events_names("event"))
+    client.trigger({"event": "second_event", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
+    client.trigger(Parameters("test1"))
+    print(client.trigger("event"))
     print(client.get_types())
 
     data = Parameters("test1")
     data.client = "hello"
-    client.process_data(data)
+    client.trigger(data)
