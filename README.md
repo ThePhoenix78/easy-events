@@ -35,7 +35,7 @@ def test1(data):
 
 
 # trigger the event
-client.process_data("event_name")
+client.trigger("event_name")
 
 # create another event
 # you can put as much parameters as you want
@@ -46,7 +46,7 @@ def test1(data, arg1, arg2, *, arg3):
 
 
 # trigger the event
-client.process_data({"command": "second_event", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
+client.trigger({"event": "second_event", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
 # here the parameters will be :
 # arg1 = arg1
 # arg2 = arg2
