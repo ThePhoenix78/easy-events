@@ -130,7 +130,7 @@ class AsyncEvents(Decorator):
         if (con and con(data)) or not con:
             return await com(data, **dico)
 
-    def process_data(self, data, event_type: str = None, lock: bool = None):
+    def trigger(self, data, event_type: str = None, lock: bool = None):
         none = type(None)
 
         if isinstance(lock, none):
@@ -180,21 +180,21 @@ if __name__ == "__main__":
 
     data = Parameters("!hello", client.prefix)
     build_data(data)
-    data = client.process_data(data)
+    data = client.trigger(data)
     # print(0, data)
 
-    data = client.process_data({"event": "hello", "parameters": {"world": "world", "lol": "data"}})
+    data = client.trigger({"event": "hello", "parameters": {"world": "world", "lol": "data"}})
     # print(1, data)
 
-    data = client.process_data({"event": "hello", "parameters": ["world", "data"]})
+    data = client.trigger({"event": "hello", "parameters": ["world", "data"]})
     # print(2, data)
 
-    data = client.process_data(["hello", "world", "data"])
+    data = client.trigger(["hello", "world", "data"])
     # print(3, data)
 
-    data = client.process_data("!hello world data")
+    data = client.trigger("!hello world data")
     # print(4, data)
 
-    data = client.process_data("!salut mdr 222")
+    data = client.trigger("!salut mdr 222")
 
     client.run()
