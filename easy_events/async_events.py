@@ -119,7 +119,7 @@ class AsyncEvents(Decorator):
         return dico
 
     async def execute(self, event: Event, data: Parameters):
-        event = self.get_event(data._command)
+        event = self.get_event(data._event)
         com = event.event
         con = event.condition
 
@@ -143,9 +143,9 @@ class AsyncEvents(Decorator):
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
             args = Parameters(data, self.prefix, lock)
 
-        event = self.grab_event(args._command, event_type)
+        event = self.grab_event(args._event, event_type)
 
-        if isinstance(args._command, str) and event and args._called:
+        if isinstance(args._event, str) and event and args._called:
             self.waiting_list.append((event, args))
 
     async def _thread(self):
@@ -183,10 +183,10 @@ if __name__ == "__main__":
     data = client.process_data(data)
     # print(0, data)
 
-    data = client.process_data({"command": "hello", "parameters": {"world": "world", "lol": "data"}})
+    data = client.process_data({"event": "hello", "parameters": {"world": "world", "lol": "data"}})
     # print(1, data)
 
-    data = client.process_data({"command": "hello", "parameters": ["world", "data"]})
+    data = client.process_data({"event": "hello", "parameters": ["world", "data"]})
     # print(2, data)
 
     data = client.process_data(["hello", "world", "data"])
