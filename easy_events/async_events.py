@@ -29,6 +29,7 @@ class AsyncEvents(Decorator):
         self._run = True
         # self._loop: AbstractEventLoop = new_event_loop()
         self.waiting_list = []
+        self.process_data = self.trigger
 
     async def build_arguments(self, function, arguments):
         values = getfullargspec(function)

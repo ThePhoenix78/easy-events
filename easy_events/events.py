@@ -19,6 +19,7 @@ class Events(Decorator):
         Decorator.__init__(self, is_async=False, self_name=self_name)
         self.prefix = prefix
         self._lock = lock
+        self.process_data = self.trigger
 
     def build_arguments(self, function, arguments):
         values = getfullargspec(function)
