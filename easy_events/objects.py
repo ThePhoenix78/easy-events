@@ -114,7 +114,7 @@ class Parameters:
 class Event:
     def __init__(self,
                  names: list,
-                 event: str,
+                 event: callable,
                  condition: callable = None,
                  event_type: str = None
                  ):
@@ -132,27 +132,40 @@ class Event:
 
 
 class Decorator:
-    def __init__(self, is_async: bool = False, self_name: bool = True):
+    def __init__(self, is_async: bool = False, use_funct_name: bool = True):
         self.events = []
         self.is_async = is_async
-        self.self_name = self_name
+        self.use_funct_name = use_funct_name
         self.event = self.add_event
 
     def event_exist(self, name: str):
-        return name in self.get_events_names()
+        return name in self.get_all_events_names()
 
     def type_exist(self, name: str):
         return name in self.get_types()
+
+    def get_all_events_names(self):
+        liste = []
+        for ev in self.events:
+            for name in ev.names:
+                liste.append(name)
+
+        return liste
 
     def get_events_names(self, event_type: str = None):
         liste = []
         for ev in self.events:
             for name in ev.names:
-                if not event_type:
+                if ev.type == event_type:
                     liste.append(name)
 
-                elif ev.type == event_type:
-                    liste.append(name)
+        return liste
+
+    def get_events_type(self, event_type: str = None):
+        liste = []
+        for event in self.events:
+            if event_type == event.type:
+                liste.append(event)
 
         return liste
 
@@ -162,21 +175,6 @@ class Decorator:
             liste.append(ev.type)
 
         liste = list(dict.fromkeys(liste))
-
-        if None in liste:
-            liste.remove(None)
-
-        return liste
-
-    def get_events(self, event_type: str):
-        liste = []
-        for event in self.events:
-            if not event_type:
-                liste.append(event)
-
-            elif event_type == event.type:
-                liste.append(event)
-
         return liste
 
     def get_event(self, name: str):
@@ -184,26 +182,23 @@ class Decorator:
             if name in event.names:
                 return event
 
-    def grab_event(self, name: str, event_type: str):
+    def grab_event(self, name: str, event_type: str = None):
         for event in self.events:
             if name in event.names and event_type == event.type:
                 return event
 
-    def add_event(self, aliases: list = None, condition: callable = None, type: str = None):
+    def add_event(self, aliases: list = [], condition: callable = None, type: str = None):
         if isinstance(aliases, str):
             aliases = [aliases]
-
-        elif not aliases:
-            aliases = []
 
         if not callable(condition):
             condition = None
 
         def add_command(command_funct):
             if self.is_async and not iscoroutinefunction(command_funct):
-                raise 'Command must be async: "async def ..."'
+                raise '[Error] Command must be async: "async def ..."'
 
-            if self.self_name:
+            if self.use_funct_name:
                 aliases.append(command_funct.__name__)
 
             al = list(dict.fromkeys(aliases))
