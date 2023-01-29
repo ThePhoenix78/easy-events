@@ -14,9 +14,9 @@ class Events(Decorator):
     def __init__(self,
                  prefix: str = "",
                  lock: bool = False,
-                 self_name: bool = True
+                 use_funct_name: bool = True
                  ):
-        Decorator.__init__(self, is_async=False, self_name=self_name)
+        Decorator.__init__(self, is_async=False, use_funct_name=use_funct_name)
         self.prefix = prefix
         self._lock = lock
         self.process_data = self.trigger

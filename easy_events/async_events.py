@@ -22,8 +22,12 @@ except ImportError:
 
 
 class AsyncEvents(Decorator):
-    def __init__(self, prefix: str = "", lock: bool = False):
-        Decorator.__init__(self, is_async=True)
+    def __init__(self,
+                 prefix: str = "",
+                 lock: bool = False,
+                 use_funct_name: bool = True
+                 ):
+        Decorator.__init__(self, is_async=True, use_funct_name=use_funct_name)
         self.prefix = prefix
         self._lock = lock
         self._run = True
