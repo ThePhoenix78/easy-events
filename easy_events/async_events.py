@@ -170,17 +170,20 @@ class AsyncEvents(Decorator):
         if isinstance(args._event, str) and event and args._called:
             return await self.execute(event, args)
 
+    async def run_task(self):
+        tasks = []
+
+        for data in self.waiting_list:
+            tasks.append(asyncio.create_task(self.execute(*data)))
+
+        for task in tasks:
+            await task
+
+        self.waiting_list.clear()
+
     async def _thread(self):
         while self._run:
-            tasks = []
-
-            for data in self.waiting_list:
-                tasks.append(asyncio.create_task(self.execute(*data)))
-
-            for task in tasks:
-                print(await task)
-
-            self.waiting_list.clear()
+            await self.run_task()
             await asyncio.sleep(.1)
 
     def run(self):
@@ -212,9 +215,9 @@ if __name__ == "__main__":
             print(val)
 
 
-    asyncio.run(main())
+    # asyncio.run(main())
 
-    """
+
     data = Parameters("!hello", client.prefix)
     build_data(data)
     data = client.trigger(data)
@@ -233,4 +236,3 @@ if __name__ == "__main__":
     # print(4, data)
 
     client.run()
-    """
