@@ -124,7 +124,6 @@ class AsyncEvents(Decorator):
         return dico
 
     async def execute(self, event: Event, data: Parameters):
-        event = self.get_event(data._event)
         com = event.event
         con = event.condition
 
@@ -153,6 +152,24 @@ class AsyncEvents(Decorator):
         if isinstance(args._event, str) and event and args._called:
             self.waiting_list.append((event, args))
 
+    async def trigger_run(self, data, event_type: str = None, lock: bool = None):
+        none = type(None)
+
+        if isinstance(lock, none):
+            lock = self._lock
+
+        args = data
+
+        if isinstance(data, Parameters):
+            pass
+        elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
+            args = Parameters(data, self.prefix, lock)
+
+        event = self.grab_event(args._event, event_type)
+
+        if isinstance(args._event, str) and event and args._called:
+            return await self.execute(event, args)
+
     async def _thread(self):
         while self._run:
             tasks = []
@@ -171,18 +188,33 @@ class AsyncEvents(Decorator):
 
 
 if __name__ == "__main__":
-    client = AsyncEvents(prefix="!")
+    import threading
+
+    client = AsyncEvents(prefix="")
 
     @client.event()
-    async def hello(data, *, world, lol="lol"):
+    async def hello(data, *, world="mdr", lol="lol"):
         await asyncio.sleep(1)
+        # print(f"Hello {world} / {lol}")
         return f"Hello {world} / {lol}"
 
     def build_data(data):
         data.image = "png"
         data.file = "txt"
 
+    async def main():
+        while True:
+            command = input("> ")
+            if not command:
+                continue
 
+            val = await client.trigger_run(command)
+            print(val)
+
+
+    asyncio.run(main())
+
+    """
     data = Parameters("!hello", client.prefix)
     build_data(data)
     data = client.trigger(data)
@@ -197,9 +229,8 @@ if __name__ == "__main__":
     data = client.trigger(["hello", "world", "data"])
     # print(3, data)
 
-    data = client.trigger("!hello world data")
+    data = client.trigger("hello world data4")
     # print(4, data)
 
-    data = client.trigger("!salut mdr 222")
-
     client.run()
+    """
