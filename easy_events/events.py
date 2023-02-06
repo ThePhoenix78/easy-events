@@ -157,23 +157,26 @@ class Events(Decorator):
 if __name__ == "__main__":
     client = Events()
 
-    @client.event("event_name", type="event")
+    # @client.event()
     def test1(data):
         print("test1")
         print("data", data)
 
-    @client.event("second_event")
+    # @client.event()
     def test2(data, arg1, arg2, *, arg3):
         print("test2", arg1, arg2, arg3)
         print("data", data)
 
-    client.trigger("event_name")
-    print("-"*50)
-    client.trigger({"event": "second_event", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
-    client.trigger(Parameters("test1"))
-    print(client.trigger("event"))
-    print(client.get_types())
+    client.event(aliases="event_name", type="event", callback=test1)
+    client.event(callback=test2)
 
-    data = Parameters("test1")
+    client.trigger("event_name", "event")
+    print("-"*50)
+    """
+    client.trigger({"event": "test2", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
+    client.trigger(Parameters("test1"))
+
+    data = Parameters("event_name")
     data.client = "hello"
     client.trigger(data)
+    """

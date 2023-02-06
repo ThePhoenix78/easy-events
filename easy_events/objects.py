@@ -187,7 +187,7 @@ class Decorator:
             if name in event.names and event_type == event.type:
                 return event
 
-    def add_event(self, aliases: list = [], condition: callable = None, type: str = None):
+    def add_event(self, aliases: list = [], condition: callable = None, type: str = None, callback: callable = None):
         if isinstance(aliases, str):
             aliases = [aliases]
 
@@ -204,5 +204,8 @@ class Decorator:
             al = list(dict.fromkeys(aliases))
             self.events.append(Event(al, command_funct, condition, type))
             return command_funct
+
+        if callable(callback):
+            return add_command(callback)
 
         return add_command
