@@ -41,7 +41,7 @@ class AsyncEvents(Decorator):
         arg = values.args
 
         if not arg:
-            return
+            return None
 
         arg.pop(0)
 
@@ -136,11 +136,10 @@ class AsyncEvents(Decorator):
         data._parameters = dico
 
         if (con and con(data)) or not con:
-            if dico:
+            if isinstance(dico, dict):
                 return await com(data, **dico)
-
             return await com()
-        
+
     def trigger(self, data, event_type: str = None, lock: bool = None):
         none = type(None)
 

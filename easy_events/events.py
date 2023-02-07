@@ -27,7 +27,7 @@ class Events(Decorator):
         arg = values.args
 
         if not arg:
-            return
+            return None
 
         arg.pop(0)
 
@@ -123,7 +123,7 @@ class Events(Decorator):
             delattr(data, elem)
 
         if (con and con(data)) or not con:
-            if dico:
+            if isinstance(dico, dict):
                 return com(data, **dico)
             return com()
 
@@ -164,14 +164,14 @@ if __name__ == "__main__":
     client = Events()
 
     @client.event()
-    def test1():
+    def test1(data):
         print("test1")
         print("data", 1)
 
     @client.event()
-    def test2(data, arg1, arg2, *, arg3):
-        print("test2", arg1, arg2, arg3)
-        print("data", data)
+    def test2():
+        print("test2") # , arg1, arg2, arg3)
+        print("data") # , data)
 
     # client.event(aliases="event_name", type="event", callback=test1)
     # client.event(callback=test2)
