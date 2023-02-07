@@ -14,12 +14,14 @@ class Events(Decorator):
     def __init__(self,
                  prefix: str = "",
                  lock: bool = False,
-                 use_funct_name: bool = True
+                 use_funct_name: bool = True,
+                 first_parameter_object: bool = True
                  ):
         Decorator.__init__(self, is_async=False, use_funct_name=use_funct_name)
         self.prefix = prefix
         self._lock = lock
         self.process_data = self.trigger
+        self.first_parameter_object = first_parameter_object
 
     def build_arguments(self, function, arguments):
         values = getfullargspec(function)
@@ -29,10 +31,12 @@ class Events(Decorator):
         if not arg:
             return None
 
-        arg.pop(0)
+        if self.first_parameter_object:
+            arg.pop(0)
 
         default = values.defaults
         ext_default = values.kwonlydefaults
+        ext = None
 
         para = {}
 
@@ -40,8 +44,6 @@ class Events(Decorator):
             default = list(default)
             for i in range(-1, -len(default)-1, -1):
                 para[arg[i]] = default[i]
-
-        ext = None
 
         if values.kwonlyargs:
             ext = values.kwonlyargs[0]
@@ -123,9 +125,13 @@ class Events(Decorator):
             delattr(data, elem)
 
         if (con and con(data)) or not con:
-            if isinstance(dico, dict):
+            if not isinstance(dico, dict):
+                return com()
+
+            if self.first_parameter_object:
                 return com(data, **dico)
-            return com()
+
+            return com(**dico)
 
     def trigger(self, data, event_type: str = None, lock: bool = None):
         none = type(None)
@@ -161,12 +167,12 @@ class Events(Decorator):
 
 
 if __name__ == "__main__":
-    client = Events()
+    client = Events(first_parameter_object=False)
 
     @client.event()
-    def test1(data):
-        print("test1")
-        print("data", 1)
+    def test1(para1: str = "a"):
+        print("test1", para1)
+        print("data")
 
     @client.event()
     def test2():
@@ -176,12 +182,12 @@ if __name__ == "__main__":
     # client.event(aliases="event_name", type="event", callback=test1)
     # client.event(callback=test2)
 
-    client.trigger("test1")
+    client.trigger("test1 1 2 3")
     print("-"*50)
 
-    client.trigger({"event": "test2", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
-    client.trigger(Parameters("test1"))
+    # client.trigger({"event": "test2", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
+    # client.trigger(Parameters("test1"))
 
-    data = Parameters("event_name")
-    data.client = "hello"
-    client.trigger(data)
+    #data = Parameters("event_name")
+    # data.client = "hello"
+    # client.trigger(data)

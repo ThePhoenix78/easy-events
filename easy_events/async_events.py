@@ -25,7 +25,8 @@ class AsyncEvents(Decorator):
     def __init__(self,
                  prefix: str = "",
                  lock: bool = False,
-                 use_funct_name: bool = True
+                 use_funct_name: bool = True,
+                 first_parameter_object: bool = True
                  ):
         Decorator.__init__(self, is_async=True, use_funct_name=use_funct_name)
         self.prefix = prefix
@@ -34,6 +35,7 @@ class AsyncEvents(Decorator):
         # self._loop: AbstractEventLoop = new_event_loop()
         self.waiting_list = []
         self.process_data = self.trigger
+        self.first_parameter_object = first_parameter_object
 
     async def build_arguments(self, function, arguments):
         values = getfullargspec(function)
@@ -43,10 +45,12 @@ class AsyncEvents(Decorator):
         if not arg:
             return None
 
-        arg.pop(0)
+        if self.first_parameter_object:
+            arg.pop(0)
 
         default = values.defaults
         ext_default = values.kwonlydefaults
+        ext = None
 
         para = {}
 
@@ -54,8 +58,6 @@ class AsyncEvents(Decorator):
             default = list(default)
             for i in range(-1, -len(default)-1, -1):
                 para[arg[i]] = default[i]
-
-        ext = None
 
         if values.kwonlyargs:
             ext = values.kwonlyargs[0]
@@ -136,9 +138,13 @@ class AsyncEvents(Decorator):
         data._parameters = dico
 
         if (con and con(data)) or not con:
-            if isinstance(dico, dict):
+            if not isinstance(dico, dict):
+                return await com()
+
+            if self.first_parameter_object:
                 return await com(data, **dico)
-            return await com()
+
+            return await com(**dico)
 
     def trigger(self, data, event_type: str = None, lock: bool = None):
         none = type(None)
@@ -199,10 +205,10 @@ class AsyncEvents(Decorator):
 if __name__ == "__main__":
     import threading
 
-    client = AsyncEvents(prefix="")
+    client = AsyncEvents(first_parameter_object=False)
 
     @client.event()
-    async def hello(data, *, world="mdr", lol="lol"):
+    async def hello(world="mdr", lol="lol"):
         await asyncio.sleep(1)
         # print(f"Hello {world} / {lol}")
         return f"Hello {world} / {lol}"
