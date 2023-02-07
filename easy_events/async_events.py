@@ -37,6 +37,11 @@ class AsyncEvents(Decorator):
         self.process_data = self.trigger
         self.first_parameter_object = first_parameter_object
 
+        self.build_arguments_async = self.build_arguments
+        self.execute_async = self.execute
+        self.trigger_async = self.trigger
+
+
     async def build_arguments(self, function, arguments):
         values = getfullargspec(function)
 
