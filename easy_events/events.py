@@ -25,6 +25,10 @@ class Events(Decorator):
         values = getfullargspec(function)
 
         arg = values.args
+
+        if not arg:
+            return
+
         arg.pop(0)
 
         default = values.defaults
@@ -119,7 +123,9 @@ class Events(Decorator):
             delattr(data, elem)
 
         if (con and con(data)) or not con:
-            return com(data, **dico)
+            if dico:
+                return com(data, **dico)
+            return com()
 
     def trigger(self, data, event_type: str = None, lock: bool = None):
         none = type(None)
@@ -157,26 +163,25 @@ class Events(Decorator):
 if __name__ == "__main__":
     client = Events()
 
-    # @client.event()
-    def test1(data):
+    @client.event()
+    def test1():
         print("test1")
-        print("data", data)
+        print("data", 1)
 
-    # @client.event()
+    @client.event()
     def test2(data, arg1, arg2, *, arg3):
         print("test2", arg1, arg2, arg3)
         print("data", data)
 
-    client.event(aliases="event_name", type="event", callback=test1)
-    client.event(callback=test2)
+    # client.event(aliases="event_name", type="event", callback=test1)
+    # client.event(callback=test2)
 
-    client.trigger("event_name", "event")
+    client.trigger("test1")
     print("-"*50)
-    """
+
     client.trigger({"event": "test2", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
     client.trigger(Parameters("test1"))
 
     data = Parameters("event_name")
     data.client = "hello"
     client.trigger(data)
-    """
