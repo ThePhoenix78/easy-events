@@ -28,15 +28,19 @@ class Events(Decorator):
 
         arg = values.args
 
-        if not arg:
+        default = values.defaults
+        ext_default = values.kwonlydefaults
+        ext = None
+
+        if not arg and not values.kwonlyargs:
             return None
 
         if self.first_parameter_object:
             arg.pop(0)
 
-        default = values.defaults
-        ext_default = values.kwonlydefaults
-        ext = None
+        if values.kwonlyargs:
+            ext = values.kwonlyargs[0]
+            arg.extend(values.kwonlyargs)
 
         para = {}
 
@@ -44,10 +48,6 @@ class Events(Decorator):
             default = list(default)
             for i in range(-1, -len(default)-1, -1):
                 para[arg[i]] = default[i]
-
-        if values.kwonlyargs:
-            ext = values.kwonlyargs[0]
-            arg.extend(values.kwonlyargs)
 
         s = len(arg)
         dico = {}
@@ -160,9 +160,6 @@ class Events(Decorator):
 
             return val
 
-        if isinstance(data, bytes):
-            return data.decode()
-
         return data
 
 
@@ -170,11 +167,11 @@ if __name__ == "__main__":
     client = Events(first_parameter_object=False)
 
     @client.event()
-    def test1(para1: str = "a"):
+    def test1(*, para1):
         print("test1", para1)
         print("data")
 
-    @client.event()
+    # @client.event()
     def test2():
         print("test2") # , arg1, arg2, arg3)
         print("data") # , data)

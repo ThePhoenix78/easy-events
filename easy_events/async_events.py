@@ -37,25 +37,24 @@ class AsyncEvents(Decorator):
         self.process_data = self.trigger
         self.first_parameter_object = first_parameter_object
 
-        self.build_arguments_async = self.build_arguments
-        self.execute_async = self.execute
-        self.trigger_async = self.trigger
-
-
     async def build_arguments(self, function, arguments):
         values = getfullargspec(function)
 
         arg = values.args
 
-        if not arg:
+        default = values.defaults
+        ext_default = values.kwonlydefaults
+        ext = None
+
+        if not arg and not values.kwonlyargs:
             return None
 
         if self.first_parameter_object:
             arg.pop(0)
 
-        default = values.defaults
-        ext_default = values.kwonlydefaults
-        ext = None
+        if values.kwonlyargs:
+            ext = values.kwonlyargs[0]
+            arg.extend(values.kwonlyargs)
 
         para = {}
 
@@ -63,10 +62,6 @@ class AsyncEvents(Decorator):
             default = list(default)
             for i in range(-1, -len(default)-1, -1):
                 para[arg[i]] = default[i]
-
-        if values.kwonlyargs:
-            ext = values.kwonlyargs[0]
-            arg.extend(values.kwonlyargs)
 
         s = len(arg)
         dico = {}
@@ -208,34 +203,21 @@ class AsyncEvents(Decorator):
 
 
 if __name__ == "__main__":
-    import threading
 
     client = AsyncEvents(first_parameter_object=False)
 
     @client.event()
-    async def hello(world="mdr", lol="lol"):
-        await asyncio.sleep(1)
-        # print(f"Hello {world} / {lol}")
-        return f"Hello {world} / {lol}"
+    async def hello(*, world):
+        # await asyncio.sleep(1)
+        print(f"Hello {world}")
+        return f"Hello {world}"
 
     def build_data(data):
         data.image = "png"
         data.file = "txt"
 
-    async def main():
-        while True:
-            command = input("> ")
-            if not command:
-                continue
 
-            val = await client.trigger_run(command)
-            print(val)
-
-
-    # asyncio.run(main())
-
-
-    data = Parameters("!hello", client.prefix)
+    data = Parameters("hello", client.prefix)
     build_data(data)
     data = client.trigger(data)
     # print(0, data)
