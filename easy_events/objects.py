@@ -152,6 +152,13 @@ class Decorator:
 
         return liste
 
+    def get_all_events_types(self):
+        liste = []
+        for ev in self.events:
+            liste.append(ev.type)
+
+        return liste
+
     def get_events_names(self, event_type: str = None):
         liste = []
         for ev in self.events:
