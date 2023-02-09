@@ -194,6 +194,11 @@ class Decorator:
             if name in event.names and event_type == event.type:
                 return event
 
+    def remove_event(self, name: str, event_type: str = None):
+        event = self.grab_event(name, event_type)
+        if event:
+            self.events.remove(event)
+
     def add_event(self, aliases: list = [], condition: callable = None, type: str = None, callback: callable = None):
         if isinstance(aliases, str):
             aliases = [aliases]
