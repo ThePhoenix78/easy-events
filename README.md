@@ -46,8 +46,17 @@ def test1(data, arg1, arg2, *, arg3):
 
 
 # trigger the event
+
+# dict way
 client.trigger({"event": "second_event", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
-# here the parameters will be :
+
+# list way
+client.trigger(["second_event", "arg1", "arg2", "arg3", "arg4"])
+
+# str way
+client.trigger("second_event arg1 arg2 arg3 arg4")
+
+# the result will be :
 # arg1 = arg1
 # arg2 = arg2
 # arg3 = [arg3, arg4]
