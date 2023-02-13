@@ -28,33 +28,25 @@ from easy_events import Events
 # create an event or use it in a class
 client = Events()
 
-# create an event
-@client.event("event_name")
-def test1(data):
-	do_action_here
-
-
-# trigger the event
-client.trigger("event_name")
 
 # create another event
 # you can put as much parameters as you want
-@client.event("second_event")
-def test1(data, arg1, arg2, *, arg3):
-	# data is the default parameter, it contain some basic informations that you can format as you want
-	do_action_here
+@client.event("test1")
+def test(data, arg1, arg2, *, arg3):
+		# data is the default parameter, it contain some basic informations that you can format as you want
+		print(data, arg1, arg2, arg3)
 
 
 # trigger the event
 
 # dict way
-client.trigger({"event": "second_event", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
+client.trigger({"event": "test", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
 
 # list way
-client.trigger(["second_event", "arg1", "arg2", "arg3", "arg4"])
+client.trigger(["test", "arg1", "arg2", "arg3", "arg4"])
 
 # str way
-client.trigger("second_event arg1 arg2 arg3 arg4")
+client.trigger("test arg1 arg2 arg3 arg4")
 
 # the result will be :
 # arg1 = arg1
