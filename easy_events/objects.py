@@ -199,12 +199,15 @@ class Decorator:
         if event:
             self.events.remove(event)
 
-    def add_event(self, aliases: list = [], condition: callable = None, type: str = None, callback: callable = None):
+    def add_event(self, aliases: list = [], condition: callable = None, type: str = None, callback: callable = None, event_type: str = None):
         if isinstance(aliases, str):
             aliases = [aliases]
 
         if not callable(condition):
             condition = None
+
+        if type:
+            event_type = type
 
         def add_command(command_funct):
             if self.is_async and not iscoroutinefunction(command_funct):
@@ -214,7 +217,8 @@ class Decorator:
                 aliases.append(command_funct.__name__)
 
             al = list(dict.fromkeys(aliases))
-            self.events.append(Event(al, command_funct, condition, type))
+
+            self.events.append(Event(al, command_funct, condition, event_type))
             return command_funct
 
         if callable(callback):
