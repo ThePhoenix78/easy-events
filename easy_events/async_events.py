@@ -104,7 +104,7 @@ class AsyncEvents(Decorator):
 
                     elif isinstance(arguments, dict):
                         try:
-                            li.append(arguments[key])
+                            li = arguments[key]
                         except KeyError:
                             pass
 

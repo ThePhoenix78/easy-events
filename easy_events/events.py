@@ -90,7 +90,7 @@ class Events(Decorator):
 
                     elif isinstance(arguments, dict):
                         try:
-                            li.append(arguments[key])
+                            li = arguments[key]
                         except KeyError:
                             pass
 
@@ -167,8 +167,8 @@ if __name__ == "__main__":
     client = Events(first_parameter_object=False)
 
     @client.event()
-    def test1(*, para1):
-        print("test1", para1)
+    def test1(arg1, arg2="", *, arg3=""):
+        print("test1", arg1, arg2, arg3)
         print("data")
 
     # @client.event()
@@ -181,6 +181,9 @@ if __name__ == "__main__":
 
     client.trigger("test1 1 2 3")
     print("-"*50)
+
+    client.trigger({"event": "test1", "parameters": {"arg1": "a1", "arg2": "a2", "arg3": ["a1", "a2"]}})
+    client.trigger({"event": "test1", "parameters": [1, 2, 3, 4, 5]})
 
     # client.trigger({"event": "test2", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
     # client.trigger(Parameters("test1"))
