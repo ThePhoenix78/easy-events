@@ -40,10 +40,13 @@ def test(data, arg1, arg2, *, arg3):
 # trigger the event
 
 # dict way
-client.trigger({"event": "test1", "parameters": {"arg1": "a1", "arg2": "a2", "arg3": ["arg3", "arg4"]}})
+client.trigger({"event": "test1", "parameters": {"arg1": "arg1", "arg2": "arg2", "arg3": ["arg3", "arg4"]}})
 
 # dict way v2
 client.trigger({"event": "test", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
+
+# dict way v3
+client.trigger({"event": "test1", "parameters": "arg1 arg2 arg3 arg4"})
 
 # list way
 client.trigger(["test", "arg1", "arg2", "arg3", "arg4"])
