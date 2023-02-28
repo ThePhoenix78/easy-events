@@ -13,7 +13,7 @@ except ImportError:
 class Events(Decorator):
     def __init__(self,
                  prefix: str = "",
-                 str_only: bool = True,
+                 str_only: bool = False,
                  use_funct_name: bool = True,
                  first_parameter_object: bool = True
                  ):
@@ -164,7 +164,7 @@ class Events(Decorator):
 
 
 if __name__ == "__main__":
-    client = Events(first_parameter_object=False)
+    client = Events(first_parameter_object=False, str_only=False)
 
     @client.event()
     def test1(arg1, arg2="", *, arg3=""):

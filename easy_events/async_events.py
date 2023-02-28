@@ -24,7 +24,7 @@ except ImportError:
 class AsyncEvents(Decorator):
     def __init__(self,
                  prefix: str = "",
-                 str_only: bool = True,
+                 str_only: bool = False,
                  use_funct_name: bool = True,
                  first_parameter_object: bool = True
                  ):
