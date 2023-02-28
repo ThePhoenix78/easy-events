@@ -4,13 +4,13 @@ from asyncio import iscoroutinefunction
 
 
 class Parameters:
-    def __init__(self, data, prefix: str = "", lock: bool = False):
+    def __init__(self, data, prefix: str = "", str_only: bool = True):
         self._prefix = prefix
         self._called = True
         self._event = data
         self._parameters = ""
 
-        if not lock:
+        if not str_only:
             self.revert()
         else:
             self.convert()

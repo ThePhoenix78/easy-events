@@ -24,13 +24,13 @@ except ImportError:
 class AsyncEvents(Decorator):
     def __init__(self,
                  prefix: str = "",
-                 lock: bool = False,
+                 str_only: bool = True,
                  use_funct_name: bool = True,
                  first_parameter_object: bool = True
                  ):
         Decorator.__init__(self, is_async=True, use_funct_name=use_funct_name)
         self.prefix = prefix
-        self._lock = lock
+        self._str_only = str_only
         self._run = True
         # self._loop: AbstractEventLoop = new_event_loop()
         self.waiting_list = []
@@ -146,36 +146,36 @@ class AsyncEvents(Decorator):
 
             return await com(**dico)
 
-    def trigger(self, data, event_type: str = None, lock: bool = None):
+    def trigger(self, data, event_type: str = None, str_only: bool = None):
         none = type(None)
 
-        if isinstance(lock, none):
-            lock = self._lock
+        if isinstance(str_only, none):
+            str_only = self._str_only
 
         args = data
 
         if isinstance(data, Parameters):
             pass
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
-            args = Parameters(data, self.prefix, lock)
+            args = Parameters(data, self.prefix, str_only)
 
         event = self.grab_event(args._event, event_type)
 
         if isinstance(args._event, str) and event and args._called:
             self.waiting_list.append((event, args))
 
-    async def trigger_run(self, data, event_type: str = None, lock: bool = None):
+    async def trigger_run(self, data, event_type: str = None, str_only: bool = None):
         none = type(None)
 
-        if isinstance(lock, none):
-            lock = self._lock
+        if isinstance(str_only, none):
+            str_only = self._str_only
 
         args = data
 
         if isinstance(data, Parameters):
             pass
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
-            args = Parameters(data, self.prefix, lock)
+            args = Parameters(data, self.prefix, str_only)
 
         event = self.grab_event(args._event, event_type)
 
