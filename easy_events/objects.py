@@ -136,7 +136,6 @@ class Decorator:
         self.events = []
         self.is_async = is_async
         self.use_funct_name = use_funct_name
-        self.event = self.add_event
 
     def event_exist(self, name: str):
         return name in self.get_all_events_names()
