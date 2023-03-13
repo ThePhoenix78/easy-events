@@ -4,14 +4,11 @@ from asyncio import iscoroutinefunction
 
 
 class Parameters:
-    def __init__(self, data, prefix: str = "", str_only: bool = True, default_event: bool=True):
+    def __init__(self, data, prefix: str = "", str_only: bool = True):
         self._prefix = prefix
         self._called = True
         self._event = data
         self._parameters = ""
-
-        if default_event:
-            self.event = self.add_event
 
         if not str_only:
             self.revert()
@@ -135,10 +132,13 @@ class Event:
 
 
 class Decorator:
-    def __init__(self, is_async: bool = False, use_funct_name: bool = True):
+    def __init__(self, is_async: bool = False, use_funct_name: bool = True, default_event: bool = True):
         self.events = []
         self.is_async = is_async
         self.use_funct_name = use_funct_name
+        
+        if default_event:
+            self.event = self.add_event
 
     def event_exist(self, name: str):
         return name in self.get_all_events_names()
