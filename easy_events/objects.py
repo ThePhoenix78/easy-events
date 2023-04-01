@@ -132,11 +132,11 @@ class Event:
 
 
 class Decorator:
-    def __init__(self, is_async: bool = False, use_funct_name: bool = True, default_event: bool = True):
+    def __init__(self, is_async: bool = False, use_funct_name: bool = True, default_event: bool=True):
         self.events = []
         self.is_async = is_async
         self.use_funct_name = use_funct_name
-        
+
         if default_event:
             self.event = self.add_event
 
