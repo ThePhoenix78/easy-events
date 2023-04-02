@@ -23,6 +23,12 @@ class EasyEvents():
         if default_event:
             self.event = self.add_event
 
+    async def run_task(self):
+        await self.asyn.run_task()
+
+    def add_task(self, data, event_type: str = None, str_only: bool = None):
+        self.asyn.trigger(data=data, event_type=event_type, str_only=str_only)
+
     def trigger(self, data, event_type: str = None, str_only: bool = None, thread: bool = False):
         none = type(None)
 
