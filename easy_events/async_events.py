@@ -147,24 +147,6 @@ class AsyncEvents(Decorator):
 
             return await com(**dico)
 
-    def trigger(self, data, event_type: str = None, str_only: bool = None):
-        none = type(None)
-
-        if isinstance(str_only, none):
-            str_only = self._str_only
-
-        args = data
-
-        if isinstance(data, Parameters):
-            pass
-        elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
-            args = Parameters(data, self.prefix, str_only)
-
-        event = self.grab_event(args._event, event_type)
-
-        if isinstance(args._event, str) and event and args._called:
-            self.waiting_list.append((event, args))
-
     async def trigger_run(self, data, event_type: str = None, str_only: bool = None):
         none = type(None)
 
@@ -182,6 +164,24 @@ class AsyncEvents(Decorator):
 
         if isinstance(args._event, str) and event and args._called:
             return await self.execute(event, args)
+
+    def trigger(self, data, event_type: str = None, str_only: bool = None):
+        none = type(None)
+
+        if isinstance(str_only, none):
+            str_only = self._str_only
+
+        args = data
+
+        if isinstance(data, Parameters):
+            pass
+        elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
+            args = Parameters(data, self.prefix, str_only)
+
+        event = self.grab_event(args._event, event_type)
+
+        if isinstance(args._event, str) and event and args._called:
+            self.waiting_list.append((event, args))
 
     async def run_task(self):
         tasks = []
@@ -201,6 +201,9 @@ class AsyncEvents(Decorator):
 
     def run(self):
         asyncio.run(self._thread())
+
+    def run_task_sync(self):
+        asyncio.run(self.run_task())
 
 
 if __name__ == "__main__":
@@ -235,4 +238,4 @@ if __name__ == "__main__":
     data = client.trigger("hello world data4")
     # print(4, data)
 
-    client.run()
+    client.run_task_sync()

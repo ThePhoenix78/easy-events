@@ -18,11 +18,12 @@ class Events(Decorator):
                  first_parameter_object: bool = True,
                  default_event: bool = True
                  ):
-                 
+
         Decorator.__init__(self, is_async=False, use_funct_name=use_funct_name, default_event=default_event)
         self.prefix = prefix
         self._str_only = str_only
         self.process_data = self.trigger
+        self.waiting_list = []
         self.first_parameter_object = first_parameter_object
 
     def build_arguments(self, function, arguments):
