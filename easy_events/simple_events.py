@@ -2,9 +2,13 @@ from threading import Thread
 import asyncio
 
 try:
-    from .easy_events import Events, AsyncEvents, Parameters
+    from .async_events import AsyncEvents
+    from .events import Events
+    from .objects import Parameters
 except ImportError:
-    from easy_events import Events, AsyncEvents, Parameters
+    from async_events import AsyncEvents
+    from events import Events
+    from objects import Parameters
 
 
 class EasyEvents():
@@ -23,19 +27,14 @@ class EasyEvents():
         if default_event:
             self.event = self.add_event
 
-    async def run_task(self):
-        await self.asyn.run_task()
-
-    def add_task(self, data, event_type: str = None, str_only: bool = None):
-        self.asyn.trigger(data=data, event_type=event_type, str_only=str_only)
-
     def trigger(self, data, event_type: str = None, str_only: bool = None, thread: bool = False):
         none = type(None)
 
         if isinstance(str_only, none):
             str_only = self.str_only
 
-        data = Parameters(data, str_only=str_only)
+        if not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
+            data = Parameters(data, str_only=str_only)
 
         sync = self.sync.grab_event(name=data._event, event_type=event_type)
         asyn = self.asyn.grab_event(name=data._event, event_type=event_type)
@@ -54,7 +53,7 @@ class EasyEvents():
             return self._execute(data, event_type, str_only)
 
     def _execute_async(self, data, event_type: str = None, str_only: bool = None):
-        return asyncio.run(self.asyn.trigger_run(data=data, event_type=event_type, str_only=str_only))
+        return asyncio.run(self.asyn.trigger(data=data, event_type=event_type, str_only=str_only))
 
     def _execute(self, data, event_type: str = None, str_only: bool = None):
         return self.sync.trigger(data=data, event_type=event_type, str_only=str_only)
@@ -80,20 +79,50 @@ class EasyEvents():
 
         return add_func
 
+    async def run_task(self, thread: bool = False):
+        self.sync.run_task(thread)
+        await self.asyn.run_task()
+
+    def run_task_sync(self, thread: bool = False):
+        self.sync.run_task(thread)
+        self.asyn.run_task_sync()
+
+    def add_task(self, data, event_type: str = None, str_only: bool = None):
+        none = type(None)
+
+        if isinstance(str_only, none):
+            str_only = self.str_only
+
+        if not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
+            data = Parameters(data, str_only=str_only)
+
+        evs = self.sync.grab_event(data._event, event_type)
+        eva = self.asyn.grab_event(data._event, event_type)
+
+        if eva:
+            self.asyn.add_task(data=data, event_type=event_type, str_only=str_only)
+
+        elif evs:
+            self.sync.add_task(data=data, event_type=event_type, str_only=str_only)
+
 
 if __name__ == "__main__":
+    import time
     client = EasyEvents(first_parameter_object=False)
 
     @client.event()
     def test(a, b):
-        print(a, b)
+        print("sync", a, b)
 
     @client.event()
     async def test2(a, b):
-        print(a, b)
+        await asyncio.sleep(3)
+        print("async", a, b)
 
-    client.trigger({"event": "test", "parameters": {"a": 1, "b": "b"}})
-    client.trigger({"event": "test2", "parameters": {"a": 1, "b": "b"}})
+    client.add_task({"event": "test2", "parameters": {"a": 1, "b": "b"}})
+    client.add_task({"event": "test", "parameters": {"a": 1, "b": "b"}})
 
-    client.trigger("test2 hello world")
-    client.trigger("test hello world")
+    client.add_task("test2 hello world")
+    client.add_task("test hello world")
+
+    client.run_task_sync(True)

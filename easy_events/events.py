@@ -1,5 +1,7 @@
 # coding: utf-8
 from inspect import getfullargspec
+from threading import Thread
+import time
 try:
     from .objects import Decorator, Parameters, Event
 except ImportError:
@@ -165,6 +167,33 @@ class Events(Decorator):
 
         return data
 
+    def add_task(self, data, event_type: str = None, str_only: bool = None):
+        none = type(None)
+
+        if isinstance(str_only, none):
+            str_only = self._str_only
+
+        args = data
+
+        if isinstance(data, Parameters):
+            pass
+        elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
+            args = Parameters(data, self.prefix, str_only)
+
+        event = self.grab_event(args._event, event_type)
+
+        if isinstance(args._event, str) and event and args._called:
+            self.waiting_list.append((event, args))
+
+    def run_task(self, thread: bool = False):
+        for data in self.waiting_list:
+            if thread:
+                Thread(target=self.execute, args=[*data]).start()
+            else:
+                self.execute(*data)
+
+        self.waiting_list.clear()
+
 
 if __name__ == "__main__":
     client = Events(first_parameter_object=False, str_only=False)
@@ -188,9 +217,9 @@ if __name__ == "__main__":
     client.trigger({"event": "test1", "parameters": {"arg1": "a1", "arg2": "a2", "arg3": ["a1", "a2"]}})
     client.trigger({"event": "test1", "parameters": [1, 2, 3, 4, 5]})
 
-    # client.trigger({"event": "test2", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
+    client.trigger({"event": "test2", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
     # client.trigger(Parameters("test1"))
 
-    #data = Parameters("event_name")
-    # data.client = "hello"
-    # client.trigger(data)
+    data = Parameters("event_name")
+    data.client = "hello"
+    client.trigger(data)

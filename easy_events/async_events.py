@@ -1,4 +1,5 @@
 from inspect import getfullargspec
+from threading import Thread
 from asyncio import (
     gather,
     wait_for,
@@ -147,7 +148,7 @@ class AsyncEvents(Decorator):
 
             return await com(**dico)
 
-    async def trigger_run(self, data, event_type: str = None, str_only: bool = None):
+    async def trigger(self, data, event_type: str = None, str_only: bool = None):
         none = type(None)
 
         if isinstance(str_only, none):
@@ -165,7 +166,7 @@ class AsyncEvents(Decorator):
         if isinstance(args._event, str) and event and args._called:
             return await self.execute(event, args)
 
-    def trigger(self, data, event_type: str = None, str_only: bool = None):
+    def add_task(self, data, event_type: str = None, str_only: bool = None):
         none = type(None)
 
         if isinstance(str_only, none):
@@ -194,6 +195,15 @@ class AsyncEvents(Decorator):
 
         self.waiting_list.clear()
 
+    def run_task_sync(self, thread: bool = False):
+        if thread:
+            Thread(target=self._exec).start()
+        else:
+            self._exec()
+
+    def _exec(self):
+        asyncio.run(self.run_task())
+
     async def _thread(self):
         while self._run:
             await self.run_task()
@@ -201,9 +211,6 @@ class AsyncEvents(Decorator):
 
     def run(self):
         asyncio.run(self._thread())
-
-    def run_task_sync(self):
-        asyncio.run(self.run_task())
 
 
 if __name__ == "__main__":
@@ -223,19 +230,19 @@ if __name__ == "__main__":
 
     data = Parameters("hello", client.prefix)
     build_data(data)
-    data = client.trigger(data)
+    data = client.add_task(data)
     # print(0, data)
 
-    data = client.trigger({"event": "hello", "parameters": {"world": "world", "lol": "data"}})
+    data = client.add_task({"event": "hello", "parameters": {"world": "world", "lol": "data"}})
     # print(1, data)
 
-    data = client.trigger({"event": "hello", "parameters": ["world", "data"]})
+    data = client.add_task({"event": "hello", "parameters": ["world", "data"]})
     # print(2, data)
 
-    data = client.trigger(["hello", "world", "data"])
+    data = client.add_task(["hello", "world", "data"])
     # print(3, data)
 
-    data = client.trigger("hello world data4")
+    data = client.add_task("hello world data4")
     # print(4, data)
 
     client.run_task_sync()
