@@ -26,14 +26,13 @@ text
 from easy_events import EasyEvents
 
 # create an event or use it in a class
-# first_object_parameter to set the first object as a Parameters (an object were you can put data you need inside)
-client = EasyEvents(first_object_parameter=False)
+client = EasyEvents()
 
 
 # create another event (can be sync or async)
 # you can put as much parameters as you want
 @client.add_event("test1")
-def test(arg1, arg2, *, arg3):
+def test(data, arg1, arg2, *, arg3):
 	# data is the default parameter, it contain some basic informations that you can format as you want
 	print(data, arg1, arg2, arg3)
 
