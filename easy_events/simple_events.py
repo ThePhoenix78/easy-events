@@ -83,9 +83,15 @@ class EasyEvents():
         self.sync.run_task(thread)
         await self.asyn.run_task()
 
-    def run_task_sync(self, thread: bool = False):
-        self.sync.run_task(thread)
-        self.asyn.run_task_sync()
+    def run_task_sync(self, thread: bool = None, sync_thread: bool = False, async_thread: bool = False):
+        none = type(None)
+
+        if not isinstance(thread, none):
+            sync_thread = thread
+            async_thread = thread
+
+        self.sync.run_task(sync_thread)
+        self.asyn.run_task_sync(async_thread)
 
     def add_task(self, data, event_type: str = None, str_only: bool = None):
         none = type(None)
@@ -107,17 +113,23 @@ class EasyEvents():
 
 
 if __name__ == "__main__":
-    import time
+    import time, random
+    t = time.time()
     client = EasyEvents(first_parameter_object=False)
+
 
     @client.event()
     def test(a, b):
-        print("sync", a, b)
+        i = random.randint(3, 10)
+        time.sleep(i)
+        print("sync", a, b, i)
+
 
     @client.event()
     async def test2(a, b):
-        await asyncio.sleep(3)
-        print("async", a, b)
+        i = random.randint(3, 10)
+        await asyncio.sleep(i)
+        print("async", a, b, i)
 
     client.add_task({"event": "test2", "parameters": {"a": 1, "b": "b"}})
     client.add_task({"event": "test", "parameters": {"a": 1, "b": "b"}})
@@ -125,4 +137,6 @@ if __name__ == "__main__":
     client.add_task("test2 hello world")
     client.add_task("test hello world")
 
-    client.run_task_sync(True)
+    client.run_task_sync(sync_thread=True, async_thread=True)
+
+    print(int(time.time()-t))
