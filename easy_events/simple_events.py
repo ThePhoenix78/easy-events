@@ -22,7 +22,9 @@ class EasyEvents():
 
         self.sync = Events(prefix=prefix, str_only=str_only, use_funct_name=use_funct_name, first_parameter_object=first_parameter_object, default_event=False)
         self.asyn = AsyncEvents(prefix=prefix, str_only=str_only, use_funct_name=use_funct_name, first_parameter_object=first_parameter_object, default_event=False)
+
         self.str_only = str_only
+        self.prefix = prefix
 
         if default_event:
             self.event = self.add_event
