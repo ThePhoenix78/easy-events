@@ -138,7 +138,7 @@ class Events(Decorator):
 
             return com(**dico)
 
-    def trigger(self, data, event_type: str = None, str_only: bool = None):
+    def trigger(self, data, event_type: str = None, str_only: bool = None, thread: bool = False):
         none = type(None)
 
         if isinstance(str_only, none):
@@ -155,7 +155,11 @@ class Events(Decorator):
 
         if isinstance(args._event, str) and event and args._called:
             try:
-                val = self.execute(event, args)
+                if thread:
+                    Thread(target=self.execute, args=[event, args]).start()
+                    return
+                else:
+                    val = self.execute(event, args)
             except Exception as e:
                 raise e
                 return f"{type(e)}: {e}"

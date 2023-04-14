@@ -1,11 +1,9 @@
 from inspect import getfullargspec
 from threading import Thread
 from asyncio import (
-    gather,
     wait_for,
     new_event_loop,
     iscoroutinefunction,
-    run_coroutine_threadsafe,
     AbstractEventLoop,
     TimeoutError,
     Future
@@ -148,7 +146,7 @@ class AsyncEvents(Decorator):
 
             return await com(**dico)
 
-    async def trigger(self, data, event_type: str = None, str_only: bool = None):
+    async def trigger(self, data, event_type: str = None, str_only: bool = None, thread: bool = False):
         none = type(None)
 
         if isinstance(str_only, none):
@@ -164,7 +162,11 @@ class AsyncEvents(Decorator):
         event = self.grab_event(args._event, event_type)
 
         if isinstance(args._event, str) and event and args._called:
-            return await self.execute(event, args)
+            if thread:
+                loop = self.start_async_thread()
+                self.submit_async_thread(self.execute(event, args), loop)
+            else:
+                return await self.execute(event, args)
 
     def add_task(self, data, event_type: str = None, str_only: bool = None):
         none = type(None)
@@ -204,6 +206,17 @@ class AsyncEvents(Decorator):
     def _exec(self):
         asyncio.run(self.run_task())
 
+    def start_async_thread(self):
+        loop = asyncio.new_event_loop()
+        Thread(target=loop.run_forever).start()
+        return loop
+
+    def submit_async_thread(self, awaitable, loop):
+        return asyncio.run_coroutine_threadsafe(awaitable, loop)
+
+    def stop_async_thread(self, loop):
+        loop.call_soon_threadsafe(loop.stop)
+
     async def _thread(self):
         while self._run:
             await self.run_task()
@@ -219,8 +232,9 @@ if __name__ == "__main__":
 
     @client.event()
     async def hello(*, world):
-        # await asyncio.sleep(1)
+        await asyncio.sleep(1)
         print(f"Hello {world}")
+
         return f"Hello {world}"
 
     def build_data(data):
@@ -233,16 +247,18 @@ if __name__ == "__main__":
     data = client.add_task(data)
     # print(0, data)
 
-    data = client.add_task({"event": "hello", "parameters": {"world": "world", "lol": "data"}})
-    # print(1, data)
+    async def main():
+        data = await client.trigger({"event": "hello", "parameters": {"world": "world", "lol": "data"}}, thread=True)
+        # print(1, data)
 
-    data = client.add_task({"event": "hello", "parameters": ["world", "data"]})
-    # print(2, data)
+        data = await client.trigger({"event": "hello", "parameters": ["world", "data"]}, thread=True)
+        # print(2, data)
 
-    data = client.add_task(["hello", "world", "data"])
-    # print(3, data)
+        data = await client.trigger(["hello", "world", "data"])
+        # print(3, data)
 
-    data = client.add_task("hello world data4")
-    # print(4, data)
+        data = await client.trigger("hello world data4")
+        # print(4, data)
 
-    client.run_task_sync()
+    asyncio.run(main())
+    # client.run_task_sync()
