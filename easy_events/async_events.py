@@ -1,13 +1,5 @@
 from inspect import getfullargspec
 from threading import Thread
-from asyncio import (
-    wait_for,
-    new_event_loop,
-    iscoroutinefunction,
-    AbstractEventLoop,
-    TimeoutError,
-    Future
-)
 import asyncio
 
 try:
@@ -28,6 +20,7 @@ class AsyncEvents(Decorator):
                  first_parameter_object: bool = True,
                  default_event: bool = True
                  ):
+
         Decorator.__init__(self, is_async=True, use_funct_name=use_funct_name, default_event=default_event)
         self.prefix = prefix
         self._str_only = str_only
@@ -132,9 +125,7 @@ class AsyncEvents(Decorator):
     async def execute(self, event: Event, data: Parameters):
         com = event.event
         con = event.condition
-
         dico = await self.build_arguments(com, data._parameters)
-
         data._parameters = dico
 
         if (con and con(data)) or not con:
@@ -148,7 +139,6 @@ class AsyncEvents(Decorator):
 
     async def trigger(self, data, event_type: str = None, str_only: bool = None, thread: bool = False):
         none = type(None)
-
         if isinstance(str_only, none):
             str_only = self._str_only
 
@@ -160,7 +150,6 @@ class AsyncEvents(Decorator):
             args = Parameters(data, self.prefix, str_only)
 
         event = self.grab_event(args._event, event_type)
-
         if isinstance(args._event, str) and event and args._called:
             if thread:
                 loop = self.start_async_thread()
