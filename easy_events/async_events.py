@@ -18,7 +18,8 @@ class AsyncEvents(Decorator):
                  str_only: bool = False,
                  use_funct_name: bool = True,
                  first_parameter_object: bool = True,
-                 default_event: bool = True
+                 default_event: bool = True,
+                 separator: str = " "
                  ):
 
         Decorator.__init__(self, is_async=True, use_funct_name=use_funct_name, default_event=default_event)
@@ -29,11 +30,14 @@ class AsyncEvents(Decorator):
         self.waiting_list = []
         self.process_data = self.trigger
         self.first_parameter_object = first_parameter_object
+        self.separator = " "
 
     async def build_arguments(self, function, arguments):
         values = getfullargspec(function)
 
         arg = values.args
+
+        annotations = values.annotations
 
         default = values.defaults
         ext_default = values.kwonlydefaults
@@ -56,25 +60,36 @@ class AsyncEvents(Decorator):
             for i in range(-1, -len(default)-1, -1):
                 para[arg[i]] = default[i]
 
-        s = len(arg)
+        len_arg = len(arg)
         dico = {}
+        was_str = False
 
         if ext:
             if not (isinstance(arguments, list) or isinstance(arguments, dict)):
-                arguments = arguments.split()
+                arguments = arguments.split(self.separator)
+                was_str = True
 
-            sep = len(arguments) - s + 1
+            sep = len(arguments) - len_arg + 1
 
             if not sep:
                 sep = 1
 
-            for i in range(s):
+            for i in range(len_arg):
                 key = arg[i]
 
                 if key != ext:
                     if isinstance(arguments, list):
+                        val_type = annotations.get(key)
+                        temp_val = arguments.pop(0)
+                        temp = temp_val
+
+                        if val_type and was_str:
+                            try:
+                                temp = val_type(temp_val)
+                            except Exception:
+                                pass
                         try:
-                            dico[key] = arguments.pop(0)
+                            dico[key] = temp
                         except IndexError:
                             if key in para.keys():
                                 dico[key] = para[key]
@@ -106,9 +121,20 @@ class AsyncEvents(Decorator):
 
                     dico[key] = li
 
-        elif s:
+        elif len_arg:
             if isinstance(arguments, list):
-                dico = {key: value for key, value in zip(arg, arguments[0:s])}
+                dico = {key: value for key, value in zip(arg, arguments[0:len_arg])}
+                """
+                for key, value in zip(arg, arguments[0:len_arg]):
+                    val_type = annotations.get(key)
+
+                    if val_type:
+                        try:
+                            temp = val_type(value)
+                        except Exception:
+                            temp = temp_val
+                    dico[key] = temp
+                """
 
             elif isinstance(arguments, dict):
                 for key in arg:
@@ -118,7 +144,17 @@ class AsyncEvents(Decorator):
                         if key in para.keys():
                             dico[key] = para[key]
             else:
-                dico = {key: value for key, value in zip(arg, arguments.split()[0:s])}
+                # dico = {key: value for key, value in zip(arg, arguments.split(self.separator)[0:len_arg])}
+
+                for key, value in zip(arg, arguments.split(self.separator)[0:len_arg]):
+                    val_type = annotations.get(key)
+
+                    if val_type:
+                        try:
+                            temp = val_type(value)
+                        except Exception:
+                            temp = temp_val
+                    dico[key] = temp
 
         return dico
 
@@ -223,6 +259,7 @@ if __name__ == "__main__":
     async def hello(*, world):
         await asyncio.sleep(1)
         print(f"Hello {world}")
+        print("lol", lol)
 
         return f"Hello {world}"
 

@@ -18,7 +18,8 @@ class Events(Decorator):
                  str_only: bool = False,
                  use_funct_name: bool = True,
                  first_parameter_object: bool = True,
-                 default_event: bool = True
+                 default_event: bool = True,
+                 separator: str = " "
                  ):
 
         Decorator.__init__(self, is_async=False, use_funct_name=use_funct_name, default_event=default_event)
@@ -27,11 +28,14 @@ class Events(Decorator):
         self.process_data = self.trigger
         self.waiting_list = []
         self.first_parameter_object = first_parameter_object
+        self.separator = separator
 
     def build_arguments(self, function, arguments):
         values = getfullargspec(function)
 
         arg = values.args
+
+        annotations = values.annotations
 
         default = values.defaults
         ext_default = values.kwonlydefaults
@@ -54,25 +58,36 @@ class Events(Decorator):
             for i in range(-1, -len(default)-1, -1):
                 para[arg[i]] = default[i]
 
-        s = len(arg)
+        len_arg = len(arg)
         dico = {}
+        was_str = False
 
         if ext:
             if not (isinstance(arguments, list) or isinstance(arguments, dict)):
-                arguments = arguments.split()
+                arguments = arguments.split(self.separator)
+                was_str = True
 
-            sep = len(arguments) - s + 1
+            sep = len(arguments) - len_arg + 1
 
             if not sep:
                 sep = 1
 
-            for i in range(s):
+            for i in range(len_arg):
                 key = arg[i]
 
                 if key != ext:
                     if isinstance(arguments, list):
+                        val_type = annotations.get(key)
+                        temp_val = arguments.pop(0)
+                        temp = temp_val
+
+                        if val_type and was_str:
+                            try:
+                                temp = val_type(temp_val)
+                            except Exception:
+                                pass
                         try:
-                            dico[key] = arguments.pop(0)
+                            dico[key] = temp
                         except IndexError:
                             if key in para.keys():
                                 dico[key] = para[key]
@@ -104,9 +119,20 @@ class Events(Decorator):
 
                     dico[key] = li
 
-        elif s:
+        elif len_arg:
             if isinstance(arguments, list):
-                dico = {key: value for key, value in zip(arg, arguments[0:s])}
+                dico = {key: value for key, value in zip(arg, arguments[0:len_arg])}
+                """
+                for key, value in zip(arg, arguments[0:len_arg]):
+                    val_type = annotations.get(key)
+
+                    if val_type:
+                        try:
+                            temp = val_type(value)
+                        except Exception:
+                            temp = temp_val
+                    dico[key] = temp
+                """
 
             elif isinstance(arguments, dict):
                 for key in arg:
@@ -116,7 +142,17 @@ class Events(Decorator):
                         if key in para.keys():
                             dico[key] = para[key]
             else:
-                dico = {key: value for key, value in zip(arg, arguments.split()[0:s])}
+                # dico = {key: value for key, value in zip(arg, arguments.split(self.separator)[0:len_arg])}
+
+                for key, value in zip(arg, arguments.split(self.separator)[0:len_arg]):
+                    val_type = annotations.get(key)
+
+                    if val_type:
+                        try:
+                            temp = val_type(value)
+                        except Exception:
+                            temp = temp_val
+                    dico[key] = temp
 
         return dico
 
@@ -203,27 +239,24 @@ if __name__ == "__main__":
     client = Events(first_parameter_object=False, str_only=False)
 
     @client.event()
-    def test1(arg1, arg2="", *, arg3=""):
-        print("test1", arg1, arg2, arg3)
-        print("data")
+    def test1(arg1: int, arg2: str = "", arg3: str = ""):
+        print("test1", f"arg1={arg1} | {type(arg1)} /", f"arg2={arg2} | {type(arg2)} /", f"arg3={arg3} | {type(arg3)}")
+        print("\n")
 
-    # @client.event()
-    def test2():
-        print("test2") # , arg1, arg2, arg3)
-        print("data") # , data)
+
+    @client.event()
+    def test2(arg1: int = 0):
+        print("test2", f"arg1={arg1}") #, arg2, arg3)
+        print("\n")
 
     # client.event(aliases="event_name", type="event", callback=test1)
     # client.event(callback=test2)
 
-    client.trigger("test1 1 2 3")
+    client.trigger("test1 1 2 3 4")
     print("-"*50)
 
-    client.trigger({"event": "test1", "parameters": {"arg1": "a1", "arg2": "a2", "arg3": ["a1", "a2"]}})
-    client.trigger({"event": "test1", "parameters": [1, 2, 3, 4, 5]})
+    # client.trigger({"event": "test1", "parameters": {"arg1": "a1", "arg2": "a2", "arg3": ["a1", "a2"]}})
+    client.trigger({"event": "test1", "parameters": ["1", "2", "3", "4", "5"]})
 
-    client.trigger({"event": "test2", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
+    # client.trigger({"event": "test2", "parameters": ["arg1", "arg2", "arg3", "arg4"]})
     # client.trigger(Parameters("test1"))
-
-    data = Parameters("event_name")
-    data.client = "hello"
-    client.trigger(data)
