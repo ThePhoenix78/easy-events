@@ -137,12 +137,14 @@ class AsyncEvents(Decorator):
 
                 for key, value in zip(arg, arguments[0:len_arg]):
                     val_type = annotations.get(key)
+                    temp = value
 
                     if val_type:
                         try:
                             temp = val_type(value)
                         except Exception:
-                            temp = temp_val
+                            pass
+
                     dico[key] = temp
 
 

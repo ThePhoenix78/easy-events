@@ -135,14 +135,15 @@ class Events(Decorator):
 
                 for key, value in zip(arg, arguments[0:len_arg]):
                     val_type = annotations.get(key)
-
+                    temp = value
+                    
                     if val_type:
                         try:
                             temp = val_type(value)
                         except Exception:
-                            temp = temp_val
-                    dico[key] = temp
+                            pass
 
+                    dico[key] = temp
 
             elif isinstance(arguments, dict):
                 for key in arg:
