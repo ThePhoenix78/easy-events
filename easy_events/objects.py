@@ -3,12 +3,35 @@ from ast import literal_eval
 from asyncio import iscoroutinefunction
 
 
+class Para:
+    def __init__(self, *args, **kwargs):
+        self._default = None
+
+        for k,v in kwargs.items():
+            setattr(self, k, v)
+
+        """
+        for k, v in enumerate(args):
+            setattr(self, f"_{k}", v)
+        """
+        if args:
+            self._default = list(args)
+
+    def build_str(self):
+        res = ""
+        for key, value in self.__dict__.items():
+            res += f"{key} : {value}\n"
+
+        return res
+
+
+
 class Parameters:
     def __init__(self, data, prefix: str = "", str_only: bool = True):
         self._prefix = prefix
         self._called = True
         self._event = data
-        self._parameters = ""
+        self._parameters = Para()
 
         if not str_only:
             self.revert()
@@ -33,18 +56,24 @@ class Parameters:
                     blank_prefix = True
 
         if check and not blank_prefix:
+            temp_event = com.lower().split()
             try:
-                self._event = com.lower().split()[0][1:]
-                self._parameters = " ".join(com.split()[1:])
+                self._event = temp_event[0][1:]
+                if len(temp_event) > 1:
+                    self._parameters = Para(*com.split()[1:])
+
             except Exception:
                 self._event = com.lower()
-                self._parameters = ""
 
         elif check and blank_prefix:
-            self._event = com.lower().split()[0]
-            self._parameters = " ".join(com.split()[1:])
+            temp_event = com.lower().split()
+            self._event = temp_event[0]
+
+            if len(temp_event) > 1:
+                self._parameters = Para(*com.split()[1:])
 
         self._called = check
+
 
     def revert(self):
         done = False
@@ -59,13 +88,21 @@ class Parameters:
                     data["event"] = self._event[0]
 
                 if len(self._event) > 1:
-                    data["parameters"] = self._event[1:]
+                    data["parameters"] = Para(*self._event[1:])
+                    self._parameters = data.get("parameters")
 
             else:
                 data = self._event
 
             self._event = data.get("event")
-            self._parameters = data.get("parameters")
+            para = data.get("parameters")
+
+            if isinstance(para, str):
+                self._parameters = Para(*para.split())
+            elif isinstance(para, list):
+                self._parameters = Para(*para)
+            elif isinstance(para, dict):
+                self._parameters = Para(**para)
 
             done = True
 
@@ -227,3 +264,25 @@ class Decorator:
             return add_command(callback)
 
         return add_command
+
+
+if __name__ == "__main__":
+    print("FULL")
+    data = Parameters({"event": "test1", "parameters": {"arg1": "a1", "arg2": "a2", "arg3": ["a1", "a2"]}}, "", False)
+    print(1, data._parameters.build_str())
+    print("-"*50)
+    print("LIST")
+    data = Parameters({"event": "test1", "parameters": ["1", 2, "3", "4", "5"]}, "", False)
+    print(2, data._parameters.build_str())
+    print("-"*50)
+    print("STR")
+    data = Parameters({"event": "test1", "parameters": "1 2 3 4 5"}, "", False)
+    print(3, data._parameters.build_str())
+    print("-"*50)
+    print("LIST ONLY")
+    data = Parameters(["test1", "1", "2", 3, "4"], "", False)
+    print(4, data._parameters.build_str())
+    print("-"*50)
+    print("STR ONLY")
+    data = Parameters("test1 1 2 3 4", "", False)
+    print(5, data._parameters.build_str())

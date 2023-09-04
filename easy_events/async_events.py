@@ -18,8 +18,7 @@ class AsyncEvents(Decorator):
                  str_only: bool = False,
                  use_funct_name: bool = True,
                  first_parameter_object: bool = True,
-                 default_event: bool = True,
-                 separator: str = " "
+                 default_event: bool = True
                  ):
 
         Decorator.__init__(self, is_async=True, use_funct_name=use_funct_name, default_event=default_event)
@@ -30,17 +29,27 @@ class AsyncEvents(Decorator):
         self.waiting_list = []
         self.process_data = self.trigger
         self.first_parameter_object = first_parameter_object
-        self.separator = " "
 
     async def build_arguments(self, function, arguments):
         values = getfullargspec(function)
+
+        if arguments._default:
+            arguments = arguments._default
+        else:
+            delattr(arguments, "_default")
+            arguments = arguments.__dict__
+
+        if not arguments:
+            arguments = []
 
         arg = values.args
 
         annotations = values.annotations
 
         default = values.defaults
+
         ext_default = values.kwonlydefaults
+
         ext = None
 
         if not arg and not values.kwonlyargs:
@@ -60,15 +69,12 @@ class AsyncEvents(Decorator):
             for i in range(-1, -len(default)-1, -1):
                 para[arg[i]] = default[i]
 
+
         len_arg = len(arg)
+
         dico = {}
-        was_str = False
 
         if ext:
-            if not (isinstance(arguments, list) or isinstance(arguments, dict)):
-                arguments = arguments.split(self.separator)
-                was_str = True
-
             sep = len(arguments) - len_arg + 1
 
             if not sep:
@@ -80,10 +86,14 @@ class AsyncEvents(Decorator):
                 if key != ext:
                     if isinstance(arguments, list):
                         val_type = annotations.get(key)
-                        temp_val = arguments.pop(0)
+                        try:
+                            temp_val = arguments.pop(0)
+                        except Exception:
+                            continue
+
                         temp = temp_val
 
-                        if val_type and was_str:
+                        if val_type:
                             try:
                                 temp = val_type(temp_val)
                             except Exception:
@@ -123,8 +133,8 @@ class AsyncEvents(Decorator):
 
         elif len_arg:
             if isinstance(arguments, list):
-                dico = {key: value for key, value in zip(arg, arguments[0:len_arg])}
-                """
+                # dico = {key: value for key, value in zip(arg, arguments[0:len_arg])}
+
                 for key, value in zip(arg, arguments[0:len_arg]):
                     val_type = annotations.get(key)
 
@@ -134,7 +144,7 @@ class AsyncEvents(Decorator):
                         except Exception:
                             temp = temp_val
                     dico[key] = temp
-                """
+
 
             elif isinstance(arguments, dict):
                 for key in arg:
@@ -143,18 +153,6 @@ class AsyncEvents(Decorator):
                     except KeyError:
                         if key in para.keys():
                             dico[key] = para[key]
-            else:
-                # dico = {key: value for key, value in zip(arg, arguments.split(self.separator)[0:len_arg])}
-
-                for key, value in zip(arg, arguments.split(self.separator)[0:len_arg]):
-                    val_type = annotations.get(key)
-
-                    if val_type:
-                        try:
-                            temp = val_type(value)
-                        except Exception:
-                            temp = temp_val
-                    dico[key] = temp
 
         return dico
 
