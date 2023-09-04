@@ -113,6 +113,10 @@ class EasyEvents():
         elif evs:
             self.sync.add_task(data=data, event_type=event_type, str_only=str_only)
 
+    def grab_event(self, event: str, event_type: str = None):
+        evs = self.sync.grab_event(event, event_type)
+        eva = self.asyn.grab_event(event, event_type)
+
 
 if __name__ == "__main__":
     import time, random
