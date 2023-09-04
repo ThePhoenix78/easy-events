@@ -60,3 +60,25 @@ client.trigger("test arg1 arg2 arg3 arg4")
 # arg3 = [arg3, arg4]
 
 ```
+
+### This library also support type assignation
+
+```py
+from easy_events import EasyEvents
+
+# first_parameter_object decide if you want a Parameters object or not when called
+# the Parameters object can be useful if you need to add some data in a class when called
+# if work kinda like the ctx from discord.py
+
+client = EasyEvents(first_parameter_object=False)
+
+
+@client.add_event()
+def sum(X: int, Y: int):
+	return X+Y
+
+
+client.trigger("sum 5 10")
+client.trigger(["sum", "5", 10])
+# the result will be 15
+```
