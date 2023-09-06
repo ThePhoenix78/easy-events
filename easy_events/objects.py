@@ -27,11 +27,12 @@ class Para:
 
 
 class Parameters:
-    def __init__(self, data, prefix: str = "", str_only: bool = True):
+    def __init__(self, data, prefix: str = "", str_only: bool = True, separator: str = " "):
         self._prefix = prefix
         self._called = True
         self._event = data
         self._parameters = Para()
+        self._separator = separator
 
         if not str_only:
             self.revert()
@@ -56,21 +57,21 @@ class Parameters:
                     blank_prefix = True
 
         if check and not blank_prefix:
-            temp_event = com.lower().split()
+            temp_event = com.lower().split(self._separator)
             try:
                 self._event = temp_event[0][1:]
                 if len(temp_event) > 1:
-                    self._parameters = Para(*com.split()[1:])
+                    self._parameters = Para(*com.split(self._separator)[1:])
 
             except Exception:
                 self._event = com.lower()
 
         elif check and blank_prefix:
-            temp_event = com.lower().split()
+            temp_event = com.lower().split(self._separator)
             self._event = temp_event[0]
 
             if len(temp_event) > 1:
-                self._parameters = Para(*com.split()[1:])
+                self._parameters = Para(*com.split(self._separator)[1:])
 
         self._called = check
 
@@ -98,7 +99,7 @@ class Parameters:
             para = data.get("parameters")
 
             if isinstance(para, str):
-                self._parameters = Para(*para.split())
+                self._parameters = Para(*para.split(self._separator))
             elif isinstance(para, list):
                 self._parameters = Para(*para)
             elif isinstance(para, dict):
@@ -127,6 +128,7 @@ class Parameters:
         del(self._parameters)
         del(self._prefix)
         del(self._called)
+        del(self._separator)
 
     def build_str(self):
         res = ""

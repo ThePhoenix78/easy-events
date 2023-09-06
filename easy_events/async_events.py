@@ -161,8 +161,11 @@ class AsyncEvents(Decorator):
     async def execute(self, event: Event, data: Parameters):
         com = event.event
         con = event.condition
+
         dico = await self.build_arguments(com, data._parameters)
-        data._parameters = dico
+
+        for elem in ["_event", "_parameters", "_prefix", "_called", "_separator"]:
+            delattr(data, elem)
 
         if (con and con(data)) or not con:
             if not isinstance(dico, dict):
@@ -186,6 +189,7 @@ class AsyncEvents(Decorator):
             args = Parameters(data, self.prefix, str_only)
 
         event = self.grab_event(args._event, event_type)
+
         if isinstance(args._event, str) and event and args._called:
             if thread:
                 loop = self.start_async_thread()
@@ -259,7 +263,7 @@ if __name__ == "__main__":
     async def hello(*, world):
         await asyncio.sleep(1)
         print(f"Hello {world}")
-        print("lol", lol)
+        print("lol", "lol")
 
         return f"Hello {world}"
 
@@ -285,6 +289,7 @@ if __name__ == "__main__":
 
         data = await client.trigger("hello world data4")
         # print(4, data)
+        return
 
     asyncio.run(main())
     # client.run_task_sync()

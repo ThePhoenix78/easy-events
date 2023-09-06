@@ -136,7 +136,7 @@ class Events(Decorator):
                 for key, value in zip(arg, arguments[0:len_arg]):
                     val_type = annotations.get(key)
                     temp = value
-                    
+
                     if val_type:
                         try:
                             temp = val_type(value)
@@ -161,7 +161,7 @@ class Events(Decorator):
 
         dico = self.build_arguments(com, data._parameters)
 
-        for elem in ["_event", "_parameters", "_prefix", "_called"]:
+        for elem in ["_event", "_parameters", "_prefix", "_called", "_separator"]:
             delattr(data, elem)
 
         if (con and con(data)) or not con:
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     client.trigger("test1 5")
     print("-"*50)
     print("FULL")
-    client.trigger({"event": "test1", "parameters": {"arg1": "a1", "arg2": "a2", "arg3": ["a1", "a2"]}})
+    client.trigger({"event": "test1", "parameters": {"arg1": "a1", "arg2": "a2", "arg3": ["a1", "a2"], "arg4": "a"}})
     print("-"*50)
     print("LIST")
     client.trigger({"event": "test1", "parameters": ["1", 2, "3", "4", "5"]})
