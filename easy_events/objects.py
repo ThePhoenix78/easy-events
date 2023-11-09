@@ -25,7 +25,6 @@ class Para:
         return res
 
 
-
 class Parameters:
     def __init__(self, data, prefix: str = "", str_only: bool = True, separator: str = " "):
         self._prefix = prefix

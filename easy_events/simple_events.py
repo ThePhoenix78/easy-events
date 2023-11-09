@@ -35,8 +35,10 @@ class EasyEvents():
         if isinstance(str_only, none):
             str_only = self.str_only
 
-        if not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
-            data = Parameters(data, str_only=str_only)
+        if isinstance(data, Parameters):
+            pass
+        elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
+            data = Parameters(data, prefix=self.prefix, str_only=str_only)
 
         sync = self.sync.grab_event(name=data._event, event_type=event_type)
         asyn = self.asyn.grab_event(name=data._event, event_type=event_type)
@@ -101,7 +103,9 @@ class EasyEvents():
         if isinstance(str_only, none):
             str_only = self.str_only
 
-        if not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
+        if isinstance(data, Parameters):
+            pass
+        elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
             data = Parameters(data, str_only=str_only)
 
         evs = self.sync.grab_event(data._event, event_type)

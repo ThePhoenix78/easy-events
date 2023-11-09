@@ -235,7 +235,7 @@ class Events(Decorator):
 
 
 if __name__ == "__main__":
-    client = Events(first_parameter_object=False, str_only=False)
+    client = Events(first_parameter_object=False, str_only=False, prefix="")
 
     @client.event()
     def test1(arg1: int, arg2: str = "4", *, arg3: str = "3"):
