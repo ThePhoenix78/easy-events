@@ -17,8 +17,8 @@ class AsyncEvents(Decorator):
                  prefix: str = "",
                  str_only: bool = False,
                  use_funct_name: bool = True,
-                 first_parameter_object: bool = True,
-                 default_event: bool = True
+                 default_event: bool = True,
+                 default_context=None,
                  ):
 
         Decorator.__init__(self, is_async=True, use_funct_name=use_funct_name, default_event=default_event)
@@ -28,9 +28,11 @@ class AsyncEvents(Decorator):
         # self._loop: AbstractEventLoop = new_event_loop()
         self.waiting_list = []
         self.process_data = self.trigger
-        self.first_parameter_object = first_parameter_object
+        ctx = False
+        self.default_context = default_context
 
-    async def build_arguments(self, function, arguments):
+
+    async def build_arguments(self, function, arguments, context=None):
         values = getfullargspec(function)
 
         if arguments._default:
@@ -55,7 +57,7 @@ class AsyncEvents(Decorator):
         if not arg and not values.kwonlyargs:
             return None
 
-        if self.first_parameter_object:
+        if not isinstance(context, type(None)):
             arg.pop(0)
 
         if values.kwonlyargs:
@@ -158,25 +160,28 @@ class AsyncEvents(Decorator):
 
         return dico
 
-    async def execute(self, event: Event, data: Parameters):
+    async def execute(self, event: Event, arguments, context=None):
         com = event.event
         con = event.condition
 
-        dico = await self.build_arguments(com, data._parameters)
+        if isinstance(context, type(None)) and not isinstance(self.default_context, type(None)):
+            try:
+                context = self.default_context()
+            except Exception:
+                context = self.default_context
 
-        for elem in ["_event", "_parameters", "_prefix", "_called", "_separator"]:
-            delattr(data, elem)
+        dico = await self.build_arguments(com, arguments, context)
 
-        if (con and con(data)) or not con:
+        if (con and con(arguments)) or not con:
             if not isinstance(dico, dict):
                 return await com()
 
-            if self.first_parameter_object:
-                return await com(data, **dico)
+            if not isinstance(context, type(None)):
+                return await com(context, **dico)
 
             return await com(**dico)
 
-    async def trigger(self, data, event_type: str = None, str_only: bool = None, thread: bool = False):
+    async def trigger(self, data, parameters=None, event_type: str = None, context=None, str_only: bool = None, thread: bool = False):
         none = type(None)
         if isinstance(str_only, none):
             str_only = self._str_only
@@ -186,18 +191,18 @@ class AsyncEvents(Decorator):
         if isinstance(data, Parameters):
             pass
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
-            args = Parameters(data, self.prefix, str_only)
+            args = Parameters(data=data, parameters=parameters, prefix=self.prefix, str_only=str_only)
 
         event = self.grab_event(args._event, event_type)
 
         if isinstance(args._event, str) and event and args._called:
             if thread:
                 loop = self.start_async_thread()
-                self.submit_async_thread(self.execute(event, args), loop)
+                self.submit_async_thread(self.execute(event, args._parameters, context), loop)
             else:
-                return await self.execute(event, args)
+                return await self.execute(event, args._parameters, context)
 
-    def add_task(self, data, event_type: str = None, str_only: bool = None):
+    def add_task(self, data, parameters=None, event_type: str = None, context=None, str_only: bool = None):
         none = type(None)
 
         if isinstance(str_only, none):
@@ -208,12 +213,12 @@ class AsyncEvents(Decorator):
         if isinstance(data, Parameters):
             pass
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
-            args = Parameters(data, self.prefix, str_only)
+            args = Parameters(data=data, parameters=parameters, prefix=self.prefix, str_only=str_only)
 
         event = self.grab_event(args._event, event_type)
 
         if isinstance(args._event, str) and event and args._called:
-            self.waiting_list.append((event, args))
+            self.waiting_list.append((event, args._parameters, context))
 
     async def run_task(self):
         tasks = []
@@ -257,7 +262,7 @@ class AsyncEvents(Decorator):
 
 if __name__ == "__main__":
 
-    client = AsyncEvents(first_parameter_object=False)
+    client = AsyncEvents()
 
     @client.event()
     async def hello(*, world):

@@ -17,8 +17,8 @@ class Events(Decorator):
                  prefix: str = "",
                  str_only: bool = False,
                  use_funct_name: bool = True,
-                 first_parameter_object: bool = True,
-                 default_event: bool = True
+                 default_event: bool = True,
+                 default_context=None,
                  ):
 
         Decorator.__init__(self, is_async=False, use_funct_name=use_funct_name, default_event=default_event)
@@ -26,9 +26,9 @@ class Events(Decorator):
         self._str_only = str_only
         self.process_data = self.trigger
         self.waiting_list = []
-        self.first_parameter_object = first_parameter_object
+        self.default_context = default_context
 
-    def build_arguments(self, function, arguments):
+    def build_arguments(self, function, arguments, context=None):
         values = getfullargspec(function)
 
         if arguments._default:
@@ -53,7 +53,7 @@ class Events(Decorator):
         if not arg and not values.kwonlyargs:
             return None
 
-        if self.first_parameter_object:
+        if not isinstance(context, type(None)):
             arg.pop(0)
 
         if values.kwonlyargs:
@@ -155,25 +155,28 @@ class Events(Decorator):
 
         return dico
 
-    def execute(self, event: Event, data: Parameters):
+    def execute(self, event: Event, arguments, context=None):
         com = event.event
         con = event.condition
 
-        dico = self.build_arguments(com, data._parameters)
+        if isinstance(context, type(None)) and not isinstance(self.default_context, type(None)):
+            try:
+                context = self.default_context()
+            except Exception:
+                context = self.default_context
 
-        for elem in ["_event", "_parameters", "_prefix", "_called", "_separator"]:
-            delattr(data, elem)
+        dico = self.build_arguments(com, arguments, context)
 
-        if (con and con(data)) or not con:
+        if (con and con(arguments)) or not con:
             if not isinstance(dico, dict):
                 return com()
 
-            if self.first_parameter_object:
-                return com(data, **dico)
+            if not isinstance(context, type(None)):
+                return com(context, **dico)
 
             return com(**dico)
 
-    def trigger(self, data, event_type: str = None, str_only: bool = None, thread: bool = False):
+    def trigger(self, data, parameters=None, event_type: str = None, context = None, str_only: bool = None, thread: bool = False):
         none = type(None)
 
         if isinstance(str_only, none):
@@ -184,17 +187,17 @@ class Events(Decorator):
         if isinstance(data, Parameters):
             pass
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
-            args = Parameters(data, self.prefix, str_only)
+            args = Parameters(data=data, parameters=parameters, prefix=self.prefix, str_only=str_only)
 
         event = self.grab_event(args._event, event_type)
 
         if isinstance(args._event, str) and event and args._called:
             try:
                 if thread:
-                    Thread(target=self.execute, args=[event, args]).start()
+                    Thread(target=self.execute, args=[event, args._parameters, context]).start()
                     return
                 else:
-                    val = self.execute(event, args)
+                    val = self.execute(event, args._parameters, context)
             except Exception as e:
                 raise e
                 return f"{type(e)}: {e}"
@@ -206,7 +209,7 @@ class Events(Decorator):
 
         return data
 
-    def add_task(self, data, event_type: str = None, str_only: bool = None):
+    def add_task(self, data, parameters=None, event_type: str = None, context = None, str_only: bool = None):
         none = type(None)
 
         if isinstance(str_only, none):
@@ -217,12 +220,12 @@ class Events(Decorator):
         if isinstance(data, Parameters):
             pass
         elif not str(type(data)) == "<class 'easy_events.objects.Parameters'>":
-            args = Parameters(data, self.prefix, str_only)
+            args = Parameters(data=data, parameters=parameters, prefix=self.prefix, str_only=str_only)
 
         event = self.grab_event(args._event, event_type)
 
         if isinstance(args._event, str) and event and args._called:
-            self.waiting_list.append((event, args))
+            self.waiting_list.append((event, args._parameters, context))
 
     def run_task(self, thread: bool = False):
         for data in self.waiting_list:
@@ -235,7 +238,11 @@ class Events(Decorator):
 
 
 if __name__ == "__main__":
-    client = Events(first_parameter_object=False, str_only=False, prefix="")
+
+    class CTX:
+        chat = "chat"
+
+    client = Events(str_only=False, prefix="")
 
     @client.event()
     def test1(arg1: int, arg2: str = "4", *, arg3: str = "3"):
@@ -244,8 +251,9 @@ if __name__ == "__main__":
 
 
     @client.event()
-    def test2(arg1: int = 0):
-        print("test2", f"arg1={arg1}") #, arg2, arg3)
+    def test2(ctx):
+        # print("test2", f"arg1={arg1}") #, arg2, arg3)
+        print("test2", f"ctx={ctx.chat}")
         print("\n")
 
     # client.event(aliases="event_name", type="event", callback=test1)
@@ -266,4 +274,4 @@ if __name__ == "__main__":
     client.trigger(["test1", "1", "2", "3", "4", "5"])
     print("-"*50)
     print("STR ONLY")
-    client.trigger("test1 7")
+    client.trigger("test2 7", context=CTX)

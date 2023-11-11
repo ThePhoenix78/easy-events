@@ -1,4 +1,5 @@
 # coding: utf-8
+from inspect import getargspec
 from ast import literal_eval
 from asyncio import iscoroutinefunction
 
@@ -26,17 +27,34 @@ class Para:
 
 
 class Parameters:
-    def __init__(self, data, prefix: str = "", str_only: bool = True, separator: str = " "):
+    def __init__(self, data, parameters=None, prefix: str = "", str_only: bool = True, separator: str = " "):
         self._prefix = prefix
         self._called = True
-        self._event = data
-        self._parameters = Para()
-        self._separator = separator
 
-        if not str_only:
-            self.revert()
+        if callable(data):
+            data = data.__name__
+
+        self._event = data
+        self._separator = separator
+        self._parameters = Para()
+
+        if isinstance(parameters, type(None)):
+            if not str_only:
+                self.revert()
+            else:
+                self.convert()
         else:
-            self.convert()
+            self.convert_parameters(parameters)
+
+    def convert_parameters(self, parameters):
+        if isinstance(parameters, str):
+            self._parameters = Para(*parameters.split(self._separator))
+
+        elif isinstance(parameters, list):
+            self._parameters = Para(*parameters)
+
+        elif isinstance(parameters, dict):
+            self._parameters = Para(**parameters)
 
     def convert(self):
         check = False
@@ -122,12 +140,17 @@ class Parameters:
         for key in keys:
             delattr(self, key)
 
+        del(self.revert)
+        del(self.convert)
+
     def clean(self):
         del(self._event)
         del(self._parameters)
         del(self._prefix)
         del(self._called)
         del(self._separator)
+        del(self.revert)
+        del(self.convert)
 
     def build_str(self):
         res = ""
@@ -269,21 +292,30 @@ class Decorator:
 
 if __name__ == "__main__":
     print("FULL")
-    data = Parameters({"event": "test1", "parameters": {"arg1": "a1", "arg2": "a2", "arg3": ["a1", "a2"]}}, "", False)
+    data = Parameters({"event": "test1", "parameters": {"arg1": "a1", "arg2": "a2", "arg3": ["a1", "a2"]}}, prefix="", str_only=False)
     print(1, data._parameters.build_str())
     print("-"*50)
     print("LIST")
-    data = Parameters({"event": "test1", "parameters": ["1", 2, "3", "4", "5"]}, "", False)
+    data = Parameters({"event": "test1", "parameters": ["1", 2, "3", "4", "5"]}, prefix="", str_only=False)
     print(2, data._parameters.build_str())
     print("-"*50)
     print("STR")
-    data = Parameters({"event": "test1", "parameters": "1 2 3 4 5"}, "", False)
+    data = Parameters({"event": "test1", "parameters": "1 2 3 4 5"}, prefix="", str_only=False)
     print(3, data._parameters.build_str())
     print("-"*50)
     print("LIST ONLY")
-    data = Parameters(["test1", "1", "2", 3, "4"], "", False)
+    data = Parameters(["test1", "1", "2", 3, "4"], prefix="", str_only=False)
     print(4, data._parameters.build_str())
     print("-"*50)
     print("STR ONLY")
-    data = Parameters("test1 1 2 3 4", "", False)
+    data = Parameters("test1 1 2 3 4", prefix="", str_only=False)
     print(5, data._parameters.build_str())
+    print("-"*50)
+    data = Parameters("test1", [1, 2, 3, 4], prefix="", str_only=False)
+    print(6, data._parameters.build_str())
+
+    data = Parameters("test1", "1 2 3 4", prefix="", str_only=False)
+    print(6, data._parameters.build_str())
+
+    data = Parameters("test1", {"arg1": "a1", "arg2": "a2", "arg3": ["a1", "a2"]}, prefix="", str_only=False)
+    print(6, data._parameters.build_str())
