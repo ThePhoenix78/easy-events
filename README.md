@@ -32,12 +32,16 @@ client = EasyEvents()
 # create another event (can be sync or async)
 # you can put as much parameters as you want
 @client.add_event("test1")
-def test(data, arg1, arg2, *, arg3):
+def test(arg1, arg2, *, arg3):
 	# data is the default parameter, it contain some basic informations that you can format as you want
-	print(data, arg1, arg2, arg3)
+	print(arg1, arg2, arg3)
 
 
 # trigger the event
+client.trigger(data=test1, parameters="arg1 arg2 arg3 arg4")
+client.trigger("test1", "arg1 arg2 arg3 arg4")
+client.trigger("test1", ["arg1", "arg2", "arg3", "arg4"])
+client.trigger("test1", {"arg1": "arg1", "arg2": "arg2", "arg3": ["arg3", "arg4"]})
 
 # dict way
 client.trigger({"event": "test1", "parameters": {"arg1": "arg1", "arg2": "arg2", "arg3": ["arg3", "arg4"]}})
@@ -66,11 +70,7 @@ client.trigger("test arg1 arg2 arg3 arg4")
 ```py
 from easy_events import EasyEvents
 
-# first_parameter_object decide if you want a Parameters object or not when called
-# the Parameters object can be useful if you need to add some data in a class when called
-# if work kinda like the ctx from discord.py
-
-client = EasyEvents(first_parameter_object=False)
+client = EasyEvents()
 
 
 @client.add_event()
@@ -81,4 +81,33 @@ def sum(X: int, Y: int):
 client.trigger("sum 5 10")
 client.trigger(["sum", "5", 10])
 # the result will be 15
+```
+
+
+### Context support
+
+
+```py
+from easy_events import EasyEvents
+
+
+class CTX:
+	def __init__(self, data: int = 0):
+		self.data = data
+
+
+client = EasyEvents(default_context=CTX)
+# client = EasyEvents(default_context=CTX(0)) works as well
+
+@client.add_event()
+def context(ctx):
+	print("ctx.data = ", ctx.data)
+
+
+client.trigger("context", context=CTX(1))
+client.trigger("context")
+
+# this will print :
+# "ctx.data = 1"
+# "ctx.data = 0"
 ```
