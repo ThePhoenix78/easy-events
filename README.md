@@ -31,7 +31,7 @@ client = EasyEvents()
 
 # create another event (can be sync or async)
 # you can put as much parameters as you want
-@client.add_event("test1")
+@client.add_event(aliases="test1")
 def test(arg1, arg2, *, arg3):
 	# data is the default parameter, it contain some basic informations that you can format as you want
 	print(arg1, arg2, arg3)
