@@ -60,7 +60,7 @@ class EasyEvents():
     def _execute(self, data, event_type: str = None, context=None, str_only: bool = None):
         return self.sync.trigger(data=data, event_type=event_type, context=None, str_only=str_only)
 
-    def add_event(self, aliases: list = [], condition: callable = None, type: str = None, callback: callable = None, event_type: str = None):
+    def add_event(self, callback: callable = None, aliases: list = [], condition: callable = None, event_type: str = None):
         if isinstance(aliases, str):
             aliases = [aliases]
 
@@ -145,6 +145,7 @@ if __name__ == "__main__":
     def test3(ctx, a, b):
         print("Sync CTX", ctx.i, a, b)
 
+
     @client.event()
     async def test4(ctx, a, b):
         print("Async CTX", ctx.i, a, b)
@@ -158,7 +159,6 @@ if __name__ == "__main__":
 
     client.add_task(test3, "hello ctx", context=CTX(2))
     client.add_task("test4 hello ctx", context=CTX(1))
-
 
     client.run_task_sync(sync_thread=True, async_thread=True)
 

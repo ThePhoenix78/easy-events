@@ -28,7 +28,7 @@ class Events(Decorator):
         self.waiting_list = []
         self.default_context = default_context
 
-    def build_arguments(self, function, arguments, context=None):
+    def build_arguments(self, function: callable, arguments: Parameters, context=None):
         values = getfullargspec(function)
 
         if arguments._default:
@@ -177,9 +177,7 @@ class Events(Decorator):
             return com(**dico)
 
     def trigger(self, data, parameters=None, event_type: str = None, context = None, str_only: bool = None, thread: bool = False):
-        none = type(None)
-
-        if isinstance(str_only, none):
+        if isinstance(str_only, type(None)):
             str_only = self._str_only
 
         args = data
@@ -210,9 +208,7 @@ class Events(Decorator):
         return data
 
     def add_task(self, data, parameters=None, event_type: str = None, context = None, str_only: bool = None):
-        none = type(None)
-
-        if isinstance(str_only, none):
+        if isinstance(str_only, type(None)):
             str_only = self._str_only
 
         args = data
@@ -274,4 +270,4 @@ if __name__ == "__main__":
     client.trigger(["test1", "1", "2", "3", "4", "5"])
     print("-"*50)
     print("STR ONLY")
-    client.trigger("test2 7", context=CTX)
+    client.trigger("test2", context=CTX)

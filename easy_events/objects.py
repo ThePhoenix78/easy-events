@@ -32,7 +32,7 @@ class Parameters:
         self._called = True
 
         if callable(data):
-            data = data.__name__
+            data = f"{prefix}{data.__name__}"
 
         self._event = data
         self._separator = separator
@@ -262,7 +262,7 @@ class Decorator:
         if event:
             self.events.remove(event)
 
-    def add_event(self, aliases: list = [], condition: callable = None, type: str = None, callback: callable = None, event_type: str = None):
+    def add_event(self, callback: callable = None, aliases: list = [], condition: callable = None, type: str = None, event_type: str = None):
         if isinstance(aliases, str):
             aliases = [aliases]
 

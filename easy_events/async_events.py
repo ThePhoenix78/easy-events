@@ -32,7 +32,7 @@ class AsyncEvents(Decorator):
         self.default_context = default_context
 
 
-    async def build_arguments(self, function, arguments, context=None):
+    async def build_arguments(self, function: callable, arguments: Parameters, context=None):
         values = getfullargspec(function)
 
         if arguments._default:
@@ -277,7 +277,7 @@ if __name__ == "__main__":
         data.file = "txt"
 
 
-    data = Parameters("hello", client.prefix)
+    data = Parameters("hello", prefix=client.prefix)
     build_data(data)
     data = client.add_task(data)
     # print(0, data)
