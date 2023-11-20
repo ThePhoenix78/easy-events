@@ -32,9 +32,10 @@ class Parameters:
         self._called = True
 
         if callable(data):
-            data = f"{prefix}{data.__name__}"
+            self._event = data.__name__
+        else:
+            self._event = data
 
-        self._event = data
         self._separator = separator
         self._parameters = Para()
 

@@ -43,22 +43,21 @@ class EasyEvents():
 
         if thread:
             if asyn:
-                Thread(target=self._execute_async, args=[data, event_type, context, str_only]).start()
+                Thread(target=self._execute_async, args=[data, parameters, event_type, context, str_only]).start()
             elif sync:
-                Thread(target=self._execute, args=[data, event_type, context, str_only]).start()
-
+                Thread(target=self._execute, args=[data, parameters, event_type, context, str_only]).start()
             return
 
         if asyn:
-            return self._execute_async(data=data, event_type=event_type, context=context, str_only=str_only)
+            return self._execute_async(data=data, parameters=parameters, event_type=event_type, context=context, str_only=str_only)
         elif sync:
-            return self._execute(data=data, event_type=event_type, context=context, str_only=str_only)
+            return self._execute(data=data, parameters=parameters, event_type=event_type, context=context, str_only=str_only)
 
-    def _execute_async(self, data, event_type: str = None, context=None, str_only: bool = None):
-        return asyncio.run(self.asyn.trigger(data=data, event_type=event_type, context=context, str_only=str_only))
+    def _execute_async(self, data, parameters=None, event_type: str = None, context=None, str_only: bool = None):
+        return asyncio.run(self.asyn.trigger(data=data, parameters=parameters, event_type=event_type, context=context, str_only=str_only))
 
-    def _execute(self, data, event_type: str = None, context=None, str_only: bool = None):
-        return self.sync.trigger(data=data, event_type=event_type, context=None, str_only=str_only)
+    def _execute(self, data, parameters=None, event_type: str = None, context=None, str_only: bool = None):
+        return self.sync.trigger(data=data, parameters=parameters, event_type=event_type, context=None, str_only=str_only)
 
     def add_event(self, callback: callable = None, aliases: list = [], condition: callable = None, event_type: str = None):
         if isinstance(aliases, str):
